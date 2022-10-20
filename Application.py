@@ -9,11 +9,22 @@ app.setStyle('Macintosh')
 
 #if(not setup):
 
-class MainWindow(QMainWindow):
+class MainWindow(QWidget):
 	def __init__(self):
 		super().__init__()
+		layout = QVBoxLayout()
 		self.label = QLabel("Main Window")
-		self.setCentralWidget(self.label)
+		layout.addWidget(self.label)
+		self.db = QSqlDatabase.addDatabase('QSQLITE')
+		self.db.setDatabaseName('personal_data.db')
+		model = QSqlTableModel()
+		model.setTable('log')
+		model.setEditStrategy(QSqlTableModel.OnManualSubmit)
+		self.view = QTableView()
+		self.view.setModel(model)
+		self.view.setWindowTitle('Personal Log')
+		layout.addWidget(self.view)
+		self.setLayout(layout)
 
 
 class SetupWindow(QWidget):
@@ -83,6 +94,7 @@ class CreateDBWindow(QWidget):
 	def add_column(self):
 		textboxValue = self.textbox.text()
 		comboboxValue = self.combobox.currentText()
+		self.textbox.setText('')
 		query = QSqlQuery()
 		query.exec_(f'''
 			ALTER TABLE log
@@ -97,8 +109,6 @@ class CreateDBWindow(QWidget):
 
 
 
-w = MainWindow()
-w.show()
 
 if not setup:
 	sw = SetupWindow()
