@@ -17,14 +17,38 @@ class MainWindow(QWidget):
 		layout.addWidget(self.label)
 		self.db = QSqlDatabase.addDatabase('QSQLITE')
 		self.db.setDatabaseName('personal_data.db')
-		model = QSqlTableModel()
-		model.setTable('log')
-		model.setEditStrategy(QSqlTableModel.OnManualSubmit)
+		self.model = QSqlTableModel()
+		self.model.setTable('log')
+		self.model.setEditStrategy(QSqlTableModel.OnFieldChange)
+		self.model.select()
 		self.view = QTableView()
-		self.view.setModel(model)
+		self.view.setModel(self.model)
 		self.view.setWindowTitle('Personal Log')
+		self.view.clicked.connect(self.findrow)
 		layout.addWidget(self.view)
 		self.setLayout(layout)
+
+		button = QPushButton('Add a row')
+		button.clicked.connect(self.addrow)
+		layout.addWidget(button)
+
+		btn1 = QPushButton('del a row')
+
+		btn1.clicked.connect(lambda: self.model.removeRow(self.view.currentIndex().row()))
+
+		layout.addWidget(btn1)
+
+		self.setLayout(layout)
+
+
+	def addrow(self):
+		print(self.model.rowCount())
+		ret = self.model.insertRows(self.model.rowCount(), 1)
+		print(ret)
+
+
+	def refresh(self):
+		self.view.refresh()
 
 
 class SetupWindow(QWidget):
