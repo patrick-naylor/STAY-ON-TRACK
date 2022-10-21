@@ -24,7 +24,6 @@ class MainWindow(QWidget):
 		self.view = QTableView()
 		self.view.setModel(self.model)
 		self.view.setWindowTitle('Personal Log')
-		self.view.clicked.connect(self.findrow)
 		layout.addWidget(self.view)
 		self.setLayout(layout)
 
@@ -32,9 +31,9 @@ class MainWindow(QWidget):
 		button.clicked.connect(self.addrow)
 		layout.addWidget(button)
 
-		btn1 = QPushButton('del a row')
-
+		btn1 = QPushButton('del last row')
 		btn1.clicked.connect(lambda: self.model.removeRow(self.view.currentIndex().row()))
+
 
 		layout.addWidget(btn1)
 
