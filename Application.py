@@ -2,6 +2,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtSql import *
 import sqlite3
+from PyQt5.QtCore import Qt
 from preferences import setup
 
 app = QApplication([])
@@ -17,28 +18,20 @@ class MainWindow(QWidget):
 		layout.addWidget(self.label)
 		self.db = QSqlDatabase.addDatabase('QSQLITE')
 		self.db.setDatabaseName('personal_data.db')
+
 		self.model = QSqlTableModel()
 		self.model.setTable('log')
 		self.model.setEditStrategy(QSqlTableModel.OnFieldChange)
 		self.model.select()
 		self.view = QTableView()
 		self.view.setModel(self.model)
-		self.view.setWindowTitle('Personal Log')
+		self.view.resizeColumnsToContents()
 		layout.addWidget(self.view)
+
+		self.addButton = QPushButton('Add a Row')
+		self.addButton.clicked.connect(self.addrow)
+		layout.addWidget(self.addButton)
 		self.setLayout(layout)
-
-		button = QPushButton('Add a row')
-		button.clicked.connect(self.addrow)
-		layout.addWidget(button)
-
-		btn1 = QPushButton('del last row')
-		btn1.clicked.connect(lambda: self.model.removeRow(self.view.currentIndex().row()))
-
-
-		layout.addWidget(btn1)
-
-		self.setLayout(layout)
-
 
 	def addrow(self):
 		print(self.model.rowCount())
@@ -46,8 +39,6 @@ class MainWindow(QWidget):
 		print(ret)
 
 
-	def refresh(self):
-		self.view.refresh()
 
 
 class SetupWindow(QWidget):
