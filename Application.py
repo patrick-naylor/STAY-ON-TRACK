@@ -94,6 +94,7 @@ class CreateDBWindow(QWidget):
 		super().__init__()
 		layout = QVBoxLayout()
 		self.label = QLabel("Create DB Window")
+		self.w = None
 		layout.addWidget(self.label)
 		self.db = QSqlDatabase.addDatabase('QSQLITE')
 		self.db.setDatabaseName('personal_data.db')
@@ -113,7 +114,7 @@ class CreateDBWindow(QWidget):
 
 		query.exec_('''
 			CREATE TABLE IF NOT EXISTS variables
-			(Variable TEXT, Goal TEXT)
+			(Variable TEXT, GoalType TEXT, Goal REAL)
 			''')
 
 		query.exec_('''
@@ -126,30 +127,46 @@ class CreateDBWindow(QWidget):
 		layout.addWidget(self.combobox)
 
 		self.textbox = QLineEdit(self)
+		self.textbox.setText('Goal Name')
 		layout.addWidget(self.textbox)
+
+		self.textbox2 = QLineEdit(self)
+		self.textbox2.setText('Target')
+		layout.addWidget(self.textbox2)
 
 		self.button = QPushButton('Add')
 		self.button.clicked.connect(self.add_column)
 		layout.addWidget(self.button)
 
 		self.doneButton = QPushButton('Done')
-		self.doneButton.clicked.connect(self.close)
+		self.doneButton.clicked.connect(self.done)
 		layout.addWidget(self.doneButton)
 
 		self.setLayout(layout)
 
+	def done(self):
+		with open('preferences.py', 'w') as f:
+			f.write('setup = True')
+		setup = True
+		if self.w is None:
+			self.w = MainWindow()
+		self.w.show()
+		self.close()
+
 	def add_column(self):
 		textboxValue = self.textbox.text()
 		comboboxValue = self.combobox.currentText()
+		textbox2Value = self.textbox2.text()
 		self.textbox.setText('')
+		self.textbox2.setText('')
 		query = QSqlQuery()
 		query.exec_(f'''
 			ALTER TABLE log
 			ADD COLUMN {textboxValue} INTEGER''')
 		query = QSqlQuery()
 		query.exec_(f'''
-			INSERT INTO variables (Variable, Goal)
-			VALUES("{textboxValue}", "{comboboxValue}")
+			INSERT INTO variables (Variable, GoalType, Goal)
+			VALUES("{textboxValue}", "{comboboxValue}", "{textbox2Value}")
 			''')
 
 
@@ -160,17 +177,5 @@ class CreateDBWindow(QWidget):
 if not setup:
 	sw = SetupWindow()
 	sw.show()
-
-else:
-	w = MainWindow()
-	w.resize(640, 480)
-	w.show()
-
-
-
-
-
-
-
 
 app.exec()
