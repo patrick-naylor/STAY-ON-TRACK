@@ -4,18 +4,20 @@ from PyQt5.QtSql import *
 import sqlite3
 from PyQt5.QtCore import Qt
 from preferences import setup
+from datetime import date
 
 app = QApplication([])
-app.setStyle('Macintosh')
+
 
 #if(not setup):
 
 class MainWindow(QWidget):
 	def __init__(self):
 		super().__init__()
-		layout = QVBoxLayout()
-		self.label = QLabel("Main Window")
-		layout.addWidget(self.label)
+		layout = QHBoxLayout()
+		layout1 = QVBoxLayout()
+		self.label = QLabel("Personal Log")
+		layout1.addWidget(self.label)
 		self.db = QSqlDatabase.addDatabase('QSQLITE')
 		self.db.setDatabaseName('personal_data.db')
 
@@ -24,19 +26,45 @@ class MainWindow(QWidget):
 		self.model.setEditStrategy(QSqlTableModel.OnFieldChange)
 		self.model.select()
 		self.view = QTableView()
+		self.view.setWindowTitle('Personal Log')
 		self.view.setModel(self.model)
 		self.view.resizeColumnsToContents()
-		layout.addWidget(self.view)
+		layout1.addWidget(self.view)
 
 		self.addButton = QPushButton('Add a Row')
-		self.addButton.clicked.connect(self.addrow)
-		layout.addWidget(self.addButton)
+		self.addButton.clicked.connect(self.add_row)
+		layout1.addWidget(self.addButton)
+
+
+		layout2 = QVBoxLayout()
+		self.today = date.today()
+		self.today_str = self.today.strftime('%m-%d-%Y')
+		self.dateLabel = QLabel(self.today_str)
+		layout2.addWidget(self.dateLabel)
+		self.journalBox = QPlainTextEdit()
+		layout2.addWidget(self.journalBox)
+		self.submitButton = QPushButton('Submit Entry')
+		self.submitButton.clicked.connect(self.submit_entry)
+		layout2.addWidget(self.submitButton)
+		layout.addLayout(layout1)
+		layout.addLayout(layout2)
 		self.setLayout(layout)
 
-	def addrow(self):
+
+	def add_row(self):
 		print(self.model.rowCount())
 		ret = self.model.insertRows(self.model.rowCount(), 1)
 		print(ret)
+
+	def submit_entry(self):
+		entry = self.journalBox.document()
+		query = QSqlQuery()
+		query.exec_(f'''
+			INSERT INTO journal (Date, Entry)
+			VALUES("{self.today_str}", "{entry.toPlainText()}")
+			''')
+		self.journalBox.clear()
+
 
 
 
@@ -88,6 +116,11 @@ class CreateDBWindow(QWidget):
 			(Variable TEXT, Goal TEXT)
 			''')
 
+		query.exec_('''
+			CREATE TABLE IF NOT EXISTS journal
+			(Date DATETIME, Entry TEXT)
+			''')
+
 		self.combobox = QComboBox()
 		self.combobox.addItems(['Process Goal', 'Outcome Goal'])
 		layout.addWidget(self.combobox)
@@ -130,6 +163,7 @@ if not setup:
 
 else:
 	w = MainWindow()
+	w.resize(640, 480)
 	w.show()
 
 
