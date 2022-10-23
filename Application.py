@@ -49,19 +49,15 @@ class MainWindow(QWidget):
 		self.submitButton.clicked.connect(self.submit_entry)
 		layout2.addWidget(self.submitButton)
 
+
 		self.layout3 = QVBoxLayout()
 		self.plotProg = QLabel('Progress')
 		self.layout3.addWidget(self.plotProg)
 		columnNum = self.model.columnCount()
 		columnNames = [self.model.headerData(col, Qt.Horizontal, Qt.DisplayRole) for col in range(columnNum)]
-		self.columnBox = QComboBox()
-		self.columnBox.addItems(columnNames)
-		self.generatePlot1 = QPushButton('Generate Plot')
-		self.generatePlot1.clicked.connect(self.gen_plot1)
-		self.layout3.addWidget(self.columnBox)
-		self.layout3.addWidget(self.generatePlot1)
-		self.figure = QLabel('')
-		self.layout3.addWidget(self.figure)
+
+		formLayout = QFormLayout()
+		groupBox = QGroupBox()
 
 		self.query = QSqlQuery()
 		self.query.exec_('SELECT Date FROM log;')
@@ -69,20 +65,29 @@ class MainWindow(QWidget):
 		while self.query.next():
 			self.date_values.append(self.query.value(0))
 
+		for name in columnNames[:-1]:
+			self.query.exec_(f'SELECT {name} FROM log;')
+			self.y_values = []
+			while self.query.next():
+				self.y_values.append(self.query.value(0))
+			self.figure = MplCanvas(self, width=4, height=4, dpi=100)
+			self.figure.axes.plot(self.date_values, self.y_values)
+			formLayout.addRow(self.figure)
+
+		groupBox.setLayout(formLayout)
+
+		scrollarea = QScrollArea()
+		scrollarea.setWidget(groupBox)
+		scrollarea.setWidgetResizable(True)
+
+		self.layout3.addWidget(scrollarea)
+
 		layout.addLayout(layout1)
 		layout.addLayout(layout2)
 		layout.addLayout(self.layout3)
 		self.setLayout(layout)
 
-	def gen_plot1(self):
-		self.layout3.removeWidget(self.figure)
-		self.query.exec_(f'SELECT {self.columnBox.currentText()} FROM log;')
-		self.y_values = []
-		while self.query.next():
-			self.y_values.append(self.query.value(0))
-		self.figure = MplCanvas(self, width=4, height=4, dpi=100)
-		self.figure.axes.plot(self.date_values, self.y_values)
-		self.layout3.addWidget(self.figure)
+
 
 	def add_row(self):
 		ret = self.model.insertRows(self.model.rowCount(), 1)
@@ -185,15 +190,15 @@ class CreateDBWindow(QWidget):
 		self.close()
 
 	def add_column(self):
-		textboxValue = self.textbox.text()
+		textboxValue = self.textbox.text().replace(' ', '_')
 		comboboxValue = self.combobox.currentText()
-		textbox2Value = self.textbox2.text()
+		textbox2Value = self.textbox2.text().replace(' ', '_')
 		self.textbox.setText('')
 		self.textbox2.setText('')
 		query = QSqlQuery()
 		query.exec_(f'''
 			ALTER TABLE log
-			ADD COLUMN {textboxValue} INTEGER''')
+			ADD COLUMN {textboxValue} REAL''')
 		query = QSqlQuery()
 		query.exec_(f'''
 			INSERT INTO variables (Variable, GoalType, Goal)
