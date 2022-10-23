@@ -8,6 +8,7 @@ from datetime import date
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+import numpy as np
 
 sw = None
 app = QApplication([])
@@ -65,13 +66,19 @@ class MainWindow(QWidget):
 		while self.query.next():
 			self.date_values.append(self.query.value(0))
 
-		for name in columnNames[:-1]:
+		for name in columnNames[1:]:
 			self.query.exec_(f'SELECT {name} FROM log;')
 			self.y_values = []
 			while self.query.next():
-				self.y_values.append(self.query.value(0))
+				#print(type(self.query.value(0)))
+				if(self.query.value(0) == ''):
+					self.y_values.append(np.nan)
+				else:
+					self.y_values.append(float(self.query.value(0)))
 			self.figure = MplCanvas(self, width=4, height=4, dpi=100)
 			self.figure.axes.plot(self.date_values, self.y_values)
+			self.figure.setMinimumHeight(280)
+			self.figure.axes.set_title(name)
 			formLayout.addRow(self.figure)
 
 		groupBox.setLayout(formLayout)
