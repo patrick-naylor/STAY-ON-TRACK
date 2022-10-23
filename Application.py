@@ -5,11 +5,13 @@ import sqlite3
 from PyQt5.QtCore import Qt
 from preferences import setup
 from datetime import date
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
+sw = None
 app = QApplication([])
 
-
-#if(not setup):
 
 class MainWindow(QWidget):
 	def __init__(self):
@@ -46,15 +48,44 @@ class MainWindow(QWidget):
 		self.submitButton = QPushButton('Submit Entry')
 		self.submitButton.clicked.connect(self.submit_entry)
 		layout2.addWidget(self.submitButton)
+
+		self.layout3 = QVBoxLayout()
+		self.plotProg = QLabel('Progress')
+		self.layout3.addWidget(self.plotProg)
+		columnNum = self.model.columnCount()
+		columnNames = [self.model.headerData(col, Qt.Horizontal, Qt.DisplayRole) for col in range(columnNum)]
+		self.columnBox = QComboBox()
+		self.columnBox.addItems(columnNames)
+		self.generatePlot1 = QPushButton('Generate Plot')
+		self.generatePlot1.clicked.connect(self.gen_plot1)
+		self.layout3.addWidget(self.columnBox)
+		self.layout3.addWidget(self.generatePlot1)
+		self.figure = QLabel('')
+		self.layout3.addWidget(self.figure)
+
+		self.query = QSqlQuery()
+		self.query.exec_('SELECT Date FROM log;')
+		self.date_values = []
+		while self.query.next():
+			self.date_values.append(self.query.value(0))
+
 		layout.addLayout(layout1)
 		layout.addLayout(layout2)
+		layout.addLayout(self.layout3)
 		self.setLayout(layout)
 
+	def gen_plot1(self):
+		self.layout3.removeWidget(self.figure)
+		self.query.exec_(f'SELECT {self.columnBox.currentText()} FROM log;')
+		self.y_values = []
+		while self.query.next():
+			self.y_values.append(self.query.value(0))
+		self.figure = MplCanvas(self, width=4, height=4, dpi=100)
+		self.figure.axes.plot(self.date_values, self.y_values)
+		self.layout3.addWidget(self.figure)
 
 	def add_row(self):
-		print(self.model.rowCount())
 		ret = self.model.insertRows(self.model.rowCount(), 1)
-		print(ret)
 
 	def submit_entry(self):
 		entry = self.journalBox.document()
@@ -169,13 +200,19 @@ class CreateDBWindow(QWidget):
 			VALUES("{textboxValue}", "{comboboxValue}", "{textbox2Value}")
 			''')
 
+class MplCanvas(FigureCanvasQTAgg):
 
-
-
-
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+        super(MplCanvas, self).__init__(fig)
 
 if not setup:
 	sw = SetupWindow()
 	sw.show()
+
+if ((setup) and (sw is None)):
+	w = MainWindow()
+	w.show()
 
 app.exec()
