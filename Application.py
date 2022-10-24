@@ -78,6 +78,7 @@ class MainWindow(QWidget):
 		ticks = [(tick[:-4] + tick[-2:], idx) for idx, tick in enumerate(self.date_values) if tick[3:5] in ['01', '15']]
 		combination = list(map(list, zip(*ticks)))
 		label_list, tick_list = combination
+		
 		for name in columnNames[1:]:
 			target = np.nan
 			mean = np.nan
