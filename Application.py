@@ -87,7 +87,7 @@ class MainWindow(QWidget):
 			mean = np.nan
 			self.query.exec_(f'SELECT Goal FROM variables WHERE Variable = "{name}"')
 			while self.query.next():
-				if isinstance(self.query.value(0), str):p
+				if isinstance(self.query.value(0), str):
 					target = np.nan
 				else:
 					target = float(self.query.value(0))
@@ -161,13 +161,14 @@ class MainWindow(QWidget):
 
 	def progress_comments(self, name, gtype, target):
 		if ((gtype == 'Process Goal') and (target == '')):
-			string = f'''Over your last 7 days youre average {name}(s) have been {amount} {high_or_low} overall average 
+			string = f'''Over your last 7 days youre average {name}(s) have been {amount} {high_or_low} overall average .
 			{rand_str}'''
 		elif ((gtype == 'Process Goal') and (isinstance(target, float))):
-			string = f'''Over your last 7 days youre average {name}(s) have been {amount} {high_or_low} than your target 
+			string = f'''Over your last 7 days youre average {name}(s) have been {percent} {closer_or_further} to your target than your overall average.
 			{rand_str}'''
 		elif gtype == 'Process Goal':
 			string = f'''Over the last 7 days your {name} has been {percent}% of your target category {target}
+			this is {percet2} {closer_or_further} than your overall average
 			{rand_str}'''
 		elif ((gtype == 'Outcome Goal') and (isinstance(target, float))):
 			string = f'''Over the last 7 days your progress towards your {name} goal has {high_or_low} by {percent}%
@@ -205,12 +206,13 @@ class CreateDBWindow(QWidget):
 
 	def __init__(self):
 		super().__init__()
-		layout = QVBoxLayout()
+		self.layout = QVBoxLayout()
 		self.label = QLabel("Create DB Window")
 		self.w = None
-		layout.addWidget(self.label)
+		self.layout.addWidget(self.label)
 		self.db = QSqlDatabase.addDatabase('QSQLITE')
 		self.db.setDatabaseName('personal_data.db')
+		self.pw = None
 
 		if not self.db.open():
 			msg = QMessageBox()
@@ -234,28 +236,77 @@ class CreateDBWindow(QWidget):
 			CREATE TABLE IF NOT EXISTS journal
 			(Date DATETIME, Entry TEXT)
 			''')
-
+		self.button = None
+		self.doneButton = None
 		self.combobox = QComboBox()
-		self.combobox.addItems(['Process Goal', 'Outcome Goal'])
-		layout.addWidget(self.combobox)
+		self.combobox.addItems(['Goal Type', 'Process Goal', 'Outcome Goal', 'Reference Goal'])
+		self.layout.addWidget(self.combobox)
 
-		self.textbox = QLineEdit(self)
-		self.textbox.setText('Goal Name')
-		layout.addWidget(self.textbox)
+		self.checkComboBtn = QPushButton('Enter')
+		self.checkComboBtn.clicked.connect(self.generate_menu)
+		self.layout.addWidget(self.checkComboBtn)
 
-		self.textbox2 = QLineEdit(self)
-		self.textbox2.setText('Target')
-		layout.addWidget(self.textbox2)
+		self.setLayout(self.layout)
 
-		self.button = QPushButton('Add')
-		self.button.clicked.connect(self.add_column)
-		layout.addWidget(self.button)
+	def generate_menu(self):
+		self.pw = None
+		self.target_strings = {'Process Goal': 'Target', 'Outcome Goal': 'Goal', 'Reference Goal': 'Goal Category Name'}
+		if(self.button != None):
+			self.layout.removeWidget(self.button)
+			self.layout.removeWidget(self.doneButton)
+			self.layout.removeWidget(self.goalText)
+			self.layout.removeWidget(self.targetText)
+			self.button = None
+			self.doneButton = None
+			self.goalText = None
+			self.targetText = None
+		if self.combobox.currentText() == 'Goal Type':
+			if self.pw is None:
+				self.pw = ErrorPopup()
+			self.pw.label.setText('Please select a Goal Type')
+			self.pw.show()
+		elif self.combobox.currentText() == 'Process Goal':
+			self.goalText = QLineEdit('Goal Name')
+			self.targetText = QLineEdit(self.target_strings['Process Goal'])
+			self.layout.addWidget(self.goalText)
+			self.layout.addWidget(self.targetText)
 
-		self.doneButton = QPushButton('Done')
-		self.doneButton.clicked.connect(self.done)
-		layout.addWidget(self.doneButton)
+			self.button = QPushButton('Add')
+			self.button.clicked.connect(self.add_column)
+			self.layout.addWidget(self.button)
 
-		self.setLayout(layout)
+			self.doneButton = QPushButton('Done')
+			self.doneButton.clicked.connect(self.done)
+			self.layout.addWidget(self.doneButton)
+		elif self.combobox.currentText() == 'Outcome Goal':
+			self.goalText = QLineEdit('Goal Name')
+			self.targetText = QLineEdit(self.target_strings['Outcome Goal'])
+			self.layout.addWidget(self.goalText)
+			self.layout.addWidget(self.targetText)
+
+			self.button = QPushButton('Add')
+			self.button.clicked.connect(self.add_column)
+			self.layout.addWidget(self.button)
+
+			self.doneButton = QPushButton('Done')
+			self.doneButton.clicked.connect(self.done)
+			self.layout.addWidget(self.doneButton)
+		else:
+			self.goalText = QLineEdit('Goal Name')
+			self.targetText = QLineEdit(self.target_strings['Reference Goal'])
+			self.layout.addWidget(self.goalText)
+			self.layout.addWidget(self.targetText)
+
+			self.button = QPushButton('Add')
+			self.button.clicked.connect(self.add_column)
+			self.layout.addWidget(self.button)
+
+			self.doneButton = QPushButton('Done')
+			self.doneButton.clicked.connect(self.done)
+			self.layout.addWidget(self.doneButton)
+		self.setLayout(self.layout)
+
+
 
 	def done(self):
 		with open('preferences.py', 'w') as f:
@@ -267,20 +318,58 @@ class CreateDBWindow(QWidget):
 		self.close()
 
 	def add_column(self):
-		textboxValue = self.textbox.text().replace(' ', '_')
+		goalValue = self.goalText.text().replace(' ', '_')
 		comboboxValue = self.combobox.currentText()
-		textbox2Value = self.textbox2.text().replace(' ', '_')
-		self.textbox.setText('')
-		self.textbox2.setText('')
-		query = QSqlQuery()
-		query.exec_(f'''
-			ALTER TABLE log
-			ADD COLUMN {textboxValue} REAL''')
-		query = QSqlQuery()
-		query.exec_(f'''
-			INSERT INTO variables (Variable, GoalType, Goal)
-			VALUES("{textboxValue}", "{comboboxValue}", "{textbox2Value}")
-			''')
+		targetValue = self.targetText.text().replace(' ', '_')
+		if(goalValue in ['', '_', 'Goal_Name']):
+			if self.pw is None:
+				self.pw = ErrorPopup()
+			self.pw.label.setText('Please add Goal Name')
+			self.pw.show()
+			self.goalText.setText('Goal Name')
+			self.targetText.setText(self.target_strings[comboboxValue])
+		elif(targetValue in ['', '_', 'Target', 'Goal', 'Goal_Category_Name']):
+			if self.pw is None:
+				self.pw = ErrorPopup()
+			self.pw.label.setText(f'Please add {self.target_strings[comboboxValue]} value')
+			self.pw.show()
+			self.goalText.setText('Goal Name')
+		elif(comboboxValue == 'Reference Goal'):
+			query = QSqlQuery()
+			query.exec_(f'''
+				ALTER TABLE log
+				ADD COLUMN {goalValue} REAL''')
+			query.exec_(f'''
+				ALTER TABLE log
+				ADD COLUMN {targetValue} REAL''')
+			query.exec_(f'''
+				INSERT INTO variables (Variable, GoalType, Goal)
+				VALUES
+				("{goalValue}", "{comboboxValue}", "{targetValue}"),
+				("{targetValue}", "Reference Category", "")
+				''')
+			self.layout.removeWidget(self.button)
+			self.layout.removeWidget(self.goalText)
+			self.layout.removeWidget(self.targetText)
+			self.button = None
+			self.goalText = None
+			self.targetText = None
+		else:
+			query = QSqlQuery()
+			query.exec_(f'''
+				ALTER TABLE log
+				ADD COLUMN {goalValue} REAL''')
+			query.exec_(f'''
+				INSERT INTO variables (Variable, GoalType, Goal)
+				VALUES
+				("{goalValue}", "{comboboxValue}", "{targetValue}")
+				''')
+			self.layout.removeWidget(self.button)
+			self.layout.removeWidget(self.goalText)
+			self.layout.removeWidget(self.targetText)
+			self.button = None
+			self.goalText = None
+			self.targetText = None
 
 class MplCanvas(FigureCanvasQTAgg):
 
@@ -288,6 +377,15 @@ class MplCanvas(FigureCanvasQTAgg):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
         super(MplCanvas, self).__init__(self.fig)
+
+class ErrorPopup(QWidget):
+	def __init__(self):
+		super().__init__()
+		layout = QVBoxLayout()
+		self.label = QLabel()
+		layout.addWidget(self.label)
+		self.setLayout(layout)
+
 
 ## Junk	layout2 = QVBoxLayout()
 #		self.today = date.today()
@@ -300,7 +398,14 @@ class MplCanvas(FigureCanvasQTAgg):
 #		self.submitButton.clicked.connect(self.submit_entry)
 #		layout2.addWidget(self.submitButton)
 
-random_strings = ['']
+random_generic_strings = ['Great Work!', 'Effort is Progress', 'You\'re doing this! Push yourself!', 
+'"Believe you can and you\'re halfway there." - Theodore Roosevelt', '']
+
+random_imporove_strings = []
+
+random_disimprove_strings = []
+
+random_reached_goal_string = []
 
 if not setup:
 	sw = SetupWindow()
