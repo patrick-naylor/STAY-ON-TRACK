@@ -50,15 +50,18 @@ class MainWindow(QWidget):
 
 
 		layout2 = QVBoxLayout()
-		self.today = date.today()
-		self.today_str = self.today.strftime('%m-%d-%Y')
-		self.dateLabel = QLabel(self.today_str)
-		layout2.addWidget(self.dateLabel)
-		self.journalBox = QPlainTextEdit()
-		layout2.addWidget(self.journalBox)
-		self.submitButton = QPushButton('Submit Entry')
-		self.submitButton.clicked.connect(self.submit_entry)
-		layout2.addWidget(self.submitButton)
+		layout2.addWidget(self.label)
+
+
+		self.model2 = QSqlTableModel()
+		self.model2.setTable('Variables')
+		self.model2.setEditStrategy(QSqlTableModel.OnFieldChange)
+		self.model2.select()
+		self.view2 = QTableView()
+		self.view2.setWindowTitle('Personal Log')
+		self.view2.setModel(self.model2)
+		self.view2.resizeColumnsToContents()
+		layout2.addWidget(self.view2)
 
 
 		self.layout3 = QVBoxLayout()
@@ -78,13 +81,13 @@ class MainWindow(QWidget):
 		ticks = [(tick[:-4] + tick[-2:], idx) for idx, tick in enumerate(self.date_values) if tick[3:5] in ['01', '15']]
 		combination = list(map(list, zip(*ticks)))
 		label_list, tick_list = combination
-		
+
 		for name in columnNames[1:]:
 			target = np.nan
 			mean = np.nan
 			self.query.exec_(f'SELECT Goal FROM variables WHERE Variable = "{name}"')
 			while self.query.next():
-				if(self.query.value(0) == ''):
+				if isinstance(self.query.value(0), str):p
 					target = np.nan
 				else:
 					target = float(self.query.value(0))
@@ -155,6 +158,24 @@ class MainWindow(QWidget):
 			VALUES("{self.today_str}", "{entry.toPlainText()}")
 			''')
 		self.journalBox.clear()
+
+	def progress_comments(self, name, gtype, target):
+		if ((gtype == 'Process Goal') and (target == '')):
+			string = f'''Over your last 7 days youre average {name}(s) have been {amount} {high_or_low} overall average 
+			{rand_str}'''
+		elif ((gtype == 'Process Goal') and (isinstance(target, float))):
+			string = f'''Over your last 7 days youre average {name}(s) have been {amount} {high_or_low} than your target 
+			{rand_str}'''
+		elif gtype == 'Process Goal':
+			string = f'''Over the last 7 days your {name} has been {percent}% of your target category {target}
+			{rand_str}'''
+		elif ((gtype == 'Outcome Goal') and (isinstance(target, float))):
+			string = f'''Over the last 7 days your progress towards your {name} goal has {high_or_low} by {percent}%
+			{outcom_rand_str}'''
+		else:
+			string = f'''Over your last 7 days youre average {name}(s) have been {amount} {high_or_low} overall average 
+			{rand_str}'''
+
 
 
 
@@ -267,6 +288,19 @@ class MplCanvas(FigureCanvasQTAgg):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
         super(MplCanvas, self).__init__(self.fig)
+
+## Junk	layout2 = QVBoxLayout()
+#		self.today = date.today()
+#		self.today_str = self.today.strftime('%m-%d-%Y')
+#		self.dateLabel = QLabel(self.today_str)
+#		layout2.addWidget(self.dateLabel)
+#		self.journalBox = QPlainTextEdit()
+#		layout2.addWidget(self.journalBox)
+#		self.submitButton = QPushButton('Submit Entry')
+#		self.submitButton.clicked.connect(self.submit_entry)
+#		layout2.addWidget(self.submitButton)
+
+random_strings = ['']
 
 if not setup:
 	sw = SetupWindow()
