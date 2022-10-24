@@ -51,18 +51,30 @@ class MainWindow(QWidget):
 
 
 		layout2 = QVBoxLayout()
+		self.label = QLabel('Progress Report')
 		layout2.addWidget(self.label)
+		formLayout = QFormLayout()
+		groupBox = QGroupBox()
+		variables = {'Variable': [], 'GoalType': [], 'Goal': []}
+		self.query = QSqlQuery()
 
+		self.query.exec_('SELECT Variable, GoalType, Goal FROM variables')
+		while self.query.next():
+			variables['Variable'].append(self.query.value(0))
+			variables['GoalType'].append(self.query.value(1))
+			variables['Goal'].append(self.query.value(2))
 
-		self.model2 = QSqlTableModel()
-		self.model2.setTable('Variables')
-		self.model2.setEditStrategy(QSqlTableModel.OnFieldChange)
-		self.model2.select()
-		self.view2 = QTableView()
-		self.view2.setWindowTitle('Personal Log')
-		self.view2.setModel(self.model2)
-		self.view2.resizeColumnsToContents()
-		layout2.addWidget(self.view2)
+		for idx in range(len(variables['Variable'])):
+			comment = self.progress_comments(variables['Variable'][idx], variables['GoalType'][idx], variables['Goal'][idx])
+			comment_label = QLabel(comment)
+			formLayout.addRow(comment_label)
+
+		groupBox.setLayout(formLayout)
+		scrollarea = QScrollArea()
+		scrollarea.setWidget(groupBox)
+		scrollarea.setWidgetResizable(True)
+
+		layout2.addWidget(scrollarea)
 
 
 		self.layout3 = QVBoxLayout()
@@ -73,8 +85,8 @@ class MainWindow(QWidget):
 
 		formLayout = QFormLayout()
 		groupBox = QGroupBox()
-
 		self.query = QSqlQuery()
+
 		self.query.exec_('SELECT Date FROM log;')
 		self.date_values = []
 		while self.query.next():
@@ -111,6 +123,7 @@ class MainWindow(QWidget):
 
 			self.figure = MplCanvas(self, width=4, height=4, dpi=100)
 			self.figure.axes.plot(self.date_values, self.y_values)
+
 			if(~np.isnan(target)):
 				self.figure.axes.plot([self.date_values[0], self.date_values[-1]], [target, target], c='orange')
 				self.figure.axes.legend([name, 'Target Value'], fontsize='small', facecolor='#1d1e1e', labelcolor='#ffffff', edgecolor='#bfbfbf')
@@ -160,10 +173,10 @@ class MainWindow(QWidget):
 			''')
 		self.journalBox.clear()
 
-	def progress_comments(query, name, gtype, target):
-		query.exec_(f'SELECT {name} FROM log')
+	def progress_comments(self, name, gtype, target):
+		self.query.exec_(f'SELECT {name} FROM log')
 		data_values = []
-		while query.next():
+		while self.query.next():
 			if isinstance(self.query.value(0), float):
 				data_values.append(self.query.value(0))
 			else:
@@ -171,8 +184,8 @@ class MainWindow(QWidget):
 		if gtype == 'Process Goal':
 			total_avg = np.nanmean(np.array(data_values))
 			last_seven = np.nanmean(np.array(data_values[-7:]))
-			total_diff = abs(target - total_avg)
-			seven_diff = abs(target - last_seven)
+			total_diff = abs(float(target) - total_avg)
+			seven_diff = abs(float(target) - last_seven)
 
 			if total_diff > seven_diff:
 				closer_or_further = 'closer'
@@ -187,16 +200,16 @@ class MainWindow(QWidget):
 			else:
 				closer_or_further = 'equal to'
 				percent = ''
-				rand_str = random.choice(random_improve_strings)
+				rand_str = random.choice(random_generic_strings)
 				
-			string = f'''Over your last seven entries youre average {name}(s) have been {percent}{closer_or_further} to your target of {target} than your overall average.
+			return f'''Over your last seven entries youre average {name}(s) have been {percent}{closer_or_further} to your target of {target} than your overall average.
 			{rand_str}'''
 
-		elif gtype == 'Outcome Goal'
+		elif gtype == 'Outcome Goal':
 			last_seven = np.nanmean(np.array(data_values[-7:]))
 			prev_seven = np.nanmean(np.array(data_values[-14:-7]))
-			last_seven_diff = abs(target-last_seven)
-			prev_seven_diff = abs(target-prev_seven)
+			last_seven_diff = abs(float(target)-last_seven)
+			prev_seven_diff = abs(float(target)-prev_seven)
 
 			if last_seven_diff > prev_seven_diff:
 				closer_or_further = 'further'
@@ -211,14 +224,14 @@ class MainWindow(QWidget):
 				rand_str = random.choice(random_improve_strings)
 			else:
 				closer_or_further = 'equal to'
-				rand_str = random.choice(random_disimprove_strings)
+				rand_str = random.choice(random_generic_strings)
 
-			string = f'''Over the last seven entries your progress towards your {name} goal is {percent}{closer_or_further} to your {target} then after your previous seven.
+			return f'''Over the last seven entries your progress towards your {name} goal is {percent}{closer_or_further} to your {target} then after your previous seven.
 			{rand_str}'''
-		elif gtype == 'Reference Goal'
-			query.exec_(f'SELECT {target} FROM log')
+		elif gtype == 'Reference Goal':
+			self.query.exec_(f'SELECT {str(target)} FROM log')
 			target_values = []
-			while query.next():
+			while self.query.next():
 				if isinstance(self.query.value(0), float):
 					target_values.append(self.query.value(0))
 				else:
@@ -239,9 +252,9 @@ class MainWindow(QWidget):
 			else:
 				closer_or_further = 'equal to'
 				percent = ''
-				rand_str = random.choice(random_improve_strings)
+				rand_str = random.choice(random_generic_strings)
 
-			string = f'''Over your last seven entries your {name} is {percent} {closer_or_further} to {target} than your overall average
+			return f'''Over your last seven entries your {name} is {percent} {closer_or_further} to {target} than your overall average
 			{rand_str}'''
 
 
@@ -468,9 +481,11 @@ class ErrorPopup(QWidget):
 random_generic_strings = ['Great Work!', 'Effort is Progress', 'You\'re doing this! Push yourself!', 
 '"Believe you can and you\'re halfway there." - Theodore Roosevelt', '']
 
-random_improve_strings = []
+random_improve_strings = ['You\'re making great progress towards your goal!', 'Don\'t let your success slow you down!',
+'You\'re crushing it!', 'You\'re progress is impressve, keep it up!']
 
-random_disimprove_strings = []
+random_disimprove_strings = ['Don\'t let this discourage you, you\'re doing great!', 'One step back won\'t ruin you\'re progress', 
+'Don\'t focus on you\'re past failures. Focus on you\'re future successes']
 
 random_reached_goal_string = []
 
