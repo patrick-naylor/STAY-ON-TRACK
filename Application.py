@@ -9,6 +9,16 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.widgets import Slider
+
+#TODO: Put progress statements for each goal in scrollable box inbetween sql view
+#and charts
+#TODO: Move Journal to bottom half. Split in half vertically between create entry
+#box and journal recall page
+#TODO: Add information to setup page
+#TODO: Add information to main page
+#TODO: Create clustering model and launch notification system
+#TODO: Work on styling/naming/logo
 
 sw = None
 app = QApplication([])
@@ -65,20 +75,57 @@ class MainWindow(QWidget):
 		self.date_values = []
 		while self.query.next():
 			self.date_values.append(self.query.value(0))
-
+		ticks = [(tick[:-4] + tick[-2:], idx) for idx, tick in enumerate(self.date_values) if tick[3:5] in ['01', '15']]
+		combination = list(map(list, zip(*ticks)))
+		label_list, tick_list = combination
 		for name in columnNames[1:]:
+			target = np.nan
+			mean = np.nan
+			self.query.exec_(f'SELECT Goal FROM variables WHERE Variable = "{name}"')
+			while self.query.next():
+				if(self.query.value(0) == ''):
+					target = np.nan
+				else:
+					target = float(self.query.value(0))
+
 			self.query.exec_(f'SELECT {name} FROM log;')
 			self.y_values = []
 			while self.query.next():
-				#print(type(self.query.value(0)))
 				if(self.query.value(0) == ''):
 					self.y_values.append(np.nan)
 				else:
 					self.y_values.append(float(self.query.value(0)))
+
+			self.query.exec_(f'SELECT GoalType FROM variables WHERE GoalType = "Process Goal" AND "Goal" = "" And Variable = "{name}"')
+			while self.query.next():
+				if(self.query.value(0) == ''):
+					mean = np.nan
+				else:
+					mean = np.nanmean(np.array(self.y_values[-7:]))
+
+
 			self.figure = MplCanvas(self, width=4, height=4, dpi=100)
 			self.figure.axes.plot(self.date_values, self.y_values)
+			if(~np.isnan(target)):
+				self.figure.axes.plot([self.date_values[0], self.date_values[-1]], [target, target], c='orange')
+				self.figure.axes.legend([name, 'Target Value'], fontsize='small', facecolor='#1d1e1e', labelcolor='#ffffff', edgecolor='#bfbfbf')
+			if(~np.isnan(mean)):
+				self.figure.axes.plot([self.date_values[0], self.date_values[-1]], [mean, mean], c='limegreen')
+				self.figure.axes.legend([name, f'Previous 7 {name} Mean'], fontsize='small', facecolor='#1d1e1e', labelcolor='#ffffff', edgecolor='#bfbfbf')
 			self.figure.setMinimumHeight(280)
-			self.figure.axes.set_title(name)
+			self.figure.axes.set_title(name, color='#ffffff')
+			self.figure.axes.tick_params(rotation=25, labelsize=8)
+			self.figure.axes.set_xticks(tick_list, label_list)
+			self.figure.fig.tight_layout(rect=(0, .025, 1, 1))
+			self.figure.axes.set_facecolor('#1d1e1e')
+			self.figure.fig.patch.set_facecolor('#1d1e1e')
+			self.figure.axes.spines['bottom'].set_color('#bfbfbf')
+			self.figure.axes.spines['top'].set_color('#bfbfbf')
+			self.figure.axes.spines['left'].set_color('#bfbfbf')
+			self.figure.axes.spines['right'].set_color('#bfbfbf')
+			self.figure.axes.tick_params(color='#bfbfbf', labelcolor='#ffffff')
+
+
 			formLayout.addRow(self.figure)
 
 		groupBox.setLayout(formLayout)
@@ -107,6 +154,7 @@ class MainWindow(QWidget):
 			VALUES("{self.today_str}", "{entry.toPlainText()}")
 			''')
 		self.journalBox.clear()
+
 
 
 
@@ -215,9 +263,9 @@ class CreateDBWindow(QWidget):
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-        super(MplCanvas, self).__init__(fig)
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
+        super(MplCanvas, self).__init__(self.fig)
 
 if not setup:
 	sw = SetupWindow()
