@@ -10,6 +10,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
+import random
 
 #TODO: Put progress statements for each goal in scrollable box inbetween sql view
 #and charts
@@ -159,22 +160,88 @@ class MainWindow(QWidget):
 			''')
 		self.journalBox.clear()
 
-	def progress_comments(self, name, gtype, target):
-		if ((gtype == 'Process Goal') and (target == '')):
-			string = f'''Over your last 7 days youre average {name}(s) have been {amount} {high_or_low} overall average .
+	def progress_comments(query, name, gtype, target):
+		query.exec_(f'SELECT {name} FROM log')
+		data_values = []
+		while query.next():
+			if isinstance(self.query.value(0), float):
+				data_values.append(self.query.value(0))
+			else:
+				data_values.append(np.nan)
+		if gtype == 'Process Goal':
+			total_avg = np.nanmean(np.array(data_values))
+			last_seven = np.nanmean(np.array(data_values[-7:]))
+			total_diff = abs(target - total_avg)
+			seven_diff = abs(target - last_seven)
+
+			if total_diff > seven_diff:
+				closer_or_further = 'closer'
+				percent_num = (total_diff - seven_diff)/seven_diff
+				percent = f'{str(percent_num * 100)}% '
+				rand_str = random.choice(random_improve_strings)
+			elif total_diff < seven_diff:
+				closer_or_further = 'further'
+				percent_num = (seven_diff - total_diff)/total_diff
+				percent = f'{str(percent_num * 100)}% '
+				rand_str = random.choice(random_disimprove_strings)
+			else:
+				closer_or_further = 'equal to'
+				percent = ''
+				rand_str = random.choice(random_improve_strings)
+				
+			string = f'''Over your last seven entries youre average {name}(s) have been {percent}{closer_or_further} to your target of {target} than your overall average.
 			{rand_str}'''
-		elif ((gtype == 'Process Goal') and (isinstance(target, float))):
-			string = f'''Over your last 7 days youre average {name}(s) have been {percent} {closer_or_further} to your target than your overall average.
+
+		elif gtype == 'Outcome Goal'
+			last_seven = np.nanmean(np.array(data_values[-7:]))
+			prev_seven = np.nanmean(np.array(data_values[-14:-7]))
+			last_seven_diff = abs(target-last_seven)
+			prev_seven_diff = abs(target-prev_seven)
+
+			if last_seven_diff > prev_seven_diff:
+				closer_or_further = 'further'
+				percent_num = last_seven_diff - prev_seven_diff
+				percent = f'{str(percent_num)} '
+				rand_str = random.choice(random_disimprove_strings)
+
+			elif last_seven_diff < prev_seven_diff:
+				closer_or_further = 'closer'
+				percent_num = prev_seven_diff - last_seven_diff
+				percent = f'{str(percent_num)} '
+				rand_str = random.choice(random_improve_strings)
+			else:
+				closer_or_further = 'equal to'
+				rand_str = random.choice(random_disimprove_strings)
+
+			string = f'''Over the last seven entries your progress towards your {name} goal is {percent}{closer_or_further} to your {target} then after your previous seven.
 			{rand_str}'''
-		elif gtype == 'Process Goal':
-			string = f'''Over the last 7 days your {name} has been {percent}% of your target category {target}
-			this is {percet2} {closer_or_further} than your overall average
-			{rand_str}'''
-		elif ((gtype == 'Outcome Goal') and (isinstance(target, float))):
-			string = f'''Over the last 7 days your progress towards your {name} goal has {high_or_low} by {percent}%
-			{outcom_rand_str}'''
-		else:
-			string = f'''Over your last 7 days youre average {name}(s) have been {amount} {high_or_low} overall average 
+		elif gtype == 'Reference Goal'
+			query.exec_(f'SELECT {target} FROM log')
+			target_values = []
+			while query.next():
+				if isinstance(self.query.value(0), float):
+					target_values.append(self.query.value(0))
+				else:
+					target_values.append(np.nan)
+			diff = abs(np.array(target_values) - np.array(data_values))
+			total_diff = np.nanmean(diff)
+			seven_diff = np.nanmean(diff[-7:])
+			if total_diff > seven_diff:
+				closer_or_further = 'closer'
+				percent_num = (total_diff - seven_diff)/seven_diff
+				percent = f'{str(percent_num * 100)}% '
+				rand_str = random.choice(random_improve_strings)
+			elif total_diff < seven_diff:
+				closer_or_further = 'further'
+				percent_num = (seven_diff - total_diff)/total_diff
+				percent = f'{str(percent_num * 100)}% '
+				rand_str = random.choice(random_disimprove_strings)
+			else:
+				closer_or_further = 'equal to'
+				percent = ''
+				rand_str = random.choice(random_improve_strings)
+
+			string = f'''Over your last seven entries your {name} is {percent} {closer_or_further} to {target} than your overall average
 			{rand_str}'''
 
 
@@ -401,7 +468,7 @@ class ErrorPopup(QWidget):
 random_generic_strings = ['Great Work!', 'Effort is Progress', 'You\'re doing this! Push yourself!', 
 '"Believe you can and you\'re halfway there." - Theodore Roosevelt', '']
 
-random_imporove_strings = []
+random_improve_strings = []
 
 random_disimprove_strings = []
 
