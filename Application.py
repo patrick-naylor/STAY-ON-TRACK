@@ -190,23 +190,23 @@ class MainWindow(QWidget):
 			if total_diff > seven_diff:
 				closer_or_further = 'closer to'
 				percent_num = (total_diff - seven_diff)/seven_diff
-				percent = f'{str(round(percent_num * 100, 2))}% '
+				percent = f'</font><font color="#1f77b4">{str(round(percent_num * 100, 2))}% </font><font color="white">'
 				rand_str = random.choice(random_improve_strings)
 			elif total_diff < seven_diff:
 				closer_or_further = 'further from'
 				percent_num = (seven_diff - total_diff)/total_diff
-				percent = f'{str(round(percent_num * 100, 2))}% '
+				percent = f'</font><font color="#1f77b4">{str(round(percent_num * 100, 2))}% </font><font color="white">'
 				rand_str = random.choice(random_disimprove_strings)
 			else:
 				rand_str = random.choice(random_generic_strings)
-				return f'''over your last seven entries your average {name}
-has been equal to your overall average
-{rand_str}'''
+				return f'''<font color="white">over your last seven entries your average {name}<br>
+has been equal to your overall average<br>
+{rand_str}</font>'''
 				
-			return f'''Over your last seven entries your average {name}
-have been {percent}{closer_or_further} your target of {target} 
-than your overall average.
-{rand_str}'''
+			return f'''<font color="white">Over your last seven entries your average {name}<br>
+have been {percent}{closer_or_further} your target of {target}<br>
+than your overall average.<br>
+{rand_str}</font>'''
 
 		elif gtype == 'Outcome Goal':
 			last_seven = np.nanmean(np.array(data_values[-7:]))
@@ -217,24 +217,24 @@ than your overall average.
 			if last_seven_diff > prev_seven_diff:
 				closer_or_further = 'further from'
 				percent_num = round(last_seven_diff - prev_seven_diff, 2)
-				percent = f'{str(percent_num)} '
+				percent = f'</font><font color="#1f77b4">{str(percent_num)} </font><font color="white">'
 				rand_str = random.choice(random_disimprove_strings)
 
 			elif last_seven_diff < prev_seven_diff:
 				closer_or_further = 'closer to'
 				percent_num = round(prev_seven_diff - last_seven_diff, 2)
-				percent = f'{str(percent_num)} '
+				percent = f'</font><font color="#1f77b4">{str(percent_num)} </font><font color="white">'
 				rand_str = random.choice(random_improve_strings)
 			else:
 				rand_str = random.choice(random_generic_strings)
-				return f'''Over your last seven days you hav not made 
-any progress towards your goal of {target}
-{rand_str}'''
+				return f'''<font color="white">Over your last seven days you hav not made<br> 
+any progress towards your goal of {target}<br>
+{rand_str}</font>'''
 
-			return f'''Over your last seven entries your progress towards your 
-{name} goal is {percent}{closer_or_further} your goal of {target} 
-then after your previous seven.
-{rand_str}'''
+			return f'''<font color="white">Over your last seven entries your progress towards your<br> 
+{name} goal is {percent}{closer_or_further} your goal of {target}<br> 
+then after your previous seven.<br>
+{rand_str}</font>'''
 		elif gtype == 'Reference Goal':
 			self.query.exec_(f'SELECT {str(target)} FROM log')
 			target_values = []
@@ -249,22 +249,22 @@ then after your previous seven.
 			if total_diff > seven_diff:
 				closer_or_further = 'closer to'
 				percent_num = (total_diff - seven_diff)/seven_diff
-				percent = f'{str(round(percent_num * 100, 2))}% '
+				percent = f'</font><font color="#1f77b4">{str(round(percent_num * 100, 2))}% </font><font color="white">'
 				rand_str = random.choice(random_improve_strings)
 			elif total_diff < seven_diff:
 				closer_or_further = 'further from'
 				percent_num = (seven_diff - total_diff)/total_diff
-				percent = f'{str(round(percent_num * 100, 2))}% '
+				percent = f'</font><font color="#1f77b4">{str(round(percent_num * 100, 2))}% </font><font color="white">'
 				rand_str = random.choice(random_disimprove_strings)
 			else:
 				rand_str = random.choice(random_generic_strings)
-				return f'''Over your last seven entries your {name} is no 
-closer to your {target} than your overall average
-{rand_str}'''
+				return f'''<font color="white">Over your last seven entries your {name} is no<br> 
+closer to your {target} than your overall average<br>
+{rand_str}</font>'''
 
-			return f'''Over your last seven entries your {name} is 
-{percent} {closer_or_further} {target} than your overall average
-{rand_str}'''
+			return f'''<font color="white">Over your last seven entries your {name} is<br> 
+{percent} {closer_or_further} {target} than your overall average<br>
+{rand_str}</font>'''
 
 
 
