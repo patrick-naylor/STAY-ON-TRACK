@@ -177,9 +177,9 @@ class MainWindow(QWidget):
 		self.query.exec_(f'SELECT {name} FROM log')
 		data_values = []
 		while self.query.next():
-			if isinstance(self.query.value(0), float):
-				data_values.append(self.query.value(0))
-			else:
+			try:
+				data_values.append(float(self.query.value(0)))
+			except ValueError:
 				data_values.append(np.nan)
 		if gtype == 'Process Goal':
 			total_avg = np.nanmean(np.array(data_values))
@@ -188,22 +188,25 @@ class MainWindow(QWidget):
 			seven_diff = abs(float(target) - last_seven)
 
 			if total_diff > seven_diff:
-				closer_or_further = 'closer'
+				closer_or_further = 'closer to'
 				percent_num = (total_diff - seven_diff)/seven_diff
-				percent = f'{str(percent_num * 100)}% '
+				percent = f'{str(round(percent_num * 100, 2))}% '
 				rand_str = random.choice(random_improve_strings)
 			elif total_diff < seven_diff:
-				closer_or_further = 'further'
+				closer_or_further = 'further from'
 				percent_num = (seven_diff - total_diff)/total_diff
-				percent = f'{str(percent_num * 100)}% '
+				percent = f'{str(round(percent_num * 100, 2))}% '
 				rand_str = random.choice(random_disimprove_strings)
 			else:
-				closer_or_further = 'equal to'
-				percent = ''
 				rand_str = random.choice(random_generic_strings)
+				return f'''over your last seven entries your average {name}
+has been equal to your overall average
+{rand_str}'''
 				
-			return f'''Over your last seven entries youre average {name}(s) have been {percent}{closer_or_further} to your target of {target} than your overall average.
-			{rand_str}'''
+			return f'''Over your last seven entries your average {name}
+have been {percent}{closer_or_further} your target of {target} 
+than your overall average.
+{rand_str}'''
 
 		elif gtype == 'Outcome Goal':
 			last_seven = np.nanmean(np.array(data_values[-7:]))
@@ -212,22 +215,26 @@ class MainWindow(QWidget):
 			prev_seven_diff = abs(float(target)-prev_seven)
 
 			if last_seven_diff > prev_seven_diff:
-				closer_or_further = 'further'
-				percent_num = last_seven_diff - prev_seven_diff
+				closer_or_further = 'further from'
+				percent_num = round(last_seven_diff - prev_seven_diff, 2)
 				percent = f'{str(percent_num)} '
 				rand_str = random.choice(random_disimprove_strings)
 
 			elif last_seven_diff < prev_seven_diff:
-				closer_or_further = 'closer'
-				percent_num = prev_seven_diff - last_seven_diff
+				closer_or_further = 'closer to'
+				percent_num = round(prev_seven_diff - last_seven_diff, 2)
 				percent = f'{str(percent_num)} '
 				rand_str = random.choice(random_improve_strings)
 			else:
-				closer_or_further = 'equal to'
 				rand_str = random.choice(random_generic_strings)
+				return f'''Over your last seven days you hav not made 
+any progress towards your goal of {target}
+{rand_str}'''
 
-			return f'''Over the last seven entries your progress towards your {name} goal is {percent}{closer_or_further} to your {target} then after your previous seven.
-			{rand_str}'''
+			return f'''Over your last seven entries your progress towards your 
+{name} goal is {percent}{closer_or_further} your goal of {target} 
+then after your previous seven.
+{rand_str}'''
 		elif gtype == 'Reference Goal':
 			self.query.exec_(f'SELECT {str(target)} FROM log')
 			target_values = []
@@ -240,22 +247,24 @@ class MainWindow(QWidget):
 			total_diff = np.nanmean(diff)
 			seven_diff = np.nanmean(diff[-7:])
 			if total_diff > seven_diff:
-				closer_or_further = 'closer'
+				closer_or_further = 'closer to'
 				percent_num = (total_diff - seven_diff)/seven_diff
-				percent = f'{str(percent_num * 100)}% '
+				percent = f'{str(round(percent_num * 100, 2))}% '
 				rand_str = random.choice(random_improve_strings)
 			elif total_diff < seven_diff:
-				closer_or_further = 'further'
+				closer_or_further = 'further from'
 				percent_num = (seven_diff - total_diff)/total_diff
-				percent = f'{str(percent_num * 100)}% '
+				percent = f'{str(round(percent_num * 100, 2))}% '
 				rand_str = random.choice(random_disimprove_strings)
 			else:
-				closer_or_further = 'equal to'
-				percent = ''
 				rand_str = random.choice(random_generic_strings)
+				return f'''Over your last seven entries your {name} is no 
+closer to your {target} than your overall average
+{rand_str}'''
 
-			return f'''Over your last seven entries your {name} is {percent} {closer_or_further} to {target} than your overall average
-			{rand_str}'''
+			return f'''Over your last seven entries your {name} is 
+{percent} {closer_or_further} {target} than your overall average
+{rand_str}'''
 
 
 
