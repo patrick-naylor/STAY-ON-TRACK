@@ -595,12 +595,13 @@ random_disimprove_strings = ['Don\'t let this discourage you, you\'re doing grea
 
 random_reached_goal_string = []
 
-if not setup:
-	sw = SetupWindow()
-	sw.show()
+if __name__ == '__main__':
+	if not setup:
+		sw = SetupWindow()
+		sw.show()
 
-if ((setup) and (sw is None)):
-	w = MainWindow()
-	w.show()
+	if ((setup) and (sw is None)):
+		w = MainWindow()
+		w.show()
 
-app.exec()
+	app.exec()
