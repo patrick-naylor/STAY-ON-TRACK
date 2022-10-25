@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtSql import *
 import sqlite3
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QDateTime
 from preferences import setup
 from datetime import date
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -12,8 +13,7 @@ import numpy as np
 from matplotlib.widgets import Slider
 import random
 
-#TODO: Put progress statements for each goal in scrollable box inbetween sql view
-#and charts
+#TODO: Update plots with new goal type
 #TODO: Move Journal to bottom half. Split in half vertically between create entry
 #box and journal recall page
 #TODO: Add information to setup page
@@ -28,7 +28,8 @@ app = QApplication([])
 class MainWindow(QWidget):
 	def __init__(self):
 		super().__init__()
-		layout = QHBoxLayout()
+		superLayout = QVBoxLayout()
+		layoutTop = QHBoxLayout()
 		layout1 = QVBoxLayout()
 		self.label = QLabel("Personal Log")
 		layout1.addWidget(self.label)
@@ -154,13 +155,69 @@ class MainWindow(QWidget):
 
 		self.layout3.addWidget(scrollarea)
 
-		layout.addLayout(layout1)
-		layout.addLayout(layout2)
-		layout.addLayout(self.layout3)
-		self.setLayout(layout)
+		layoutTop.addLayout(layout1)
+		layoutTop.addLayout(layout2)
+		layoutTop.addLayout(self.layout3)
+
+		layoutBottom = QHBoxLayout()
+		layout1 = QVBoxLayout()
+		self.today = date.today()
+		self.today_str = self.today.strftime('%m-%d-%Y')
+		self.dateLabel = QLabel(self.today_str)
+		layout1.addWidget(self.dateLabel)
+		self.journalBox = QPlainTextEdit()
+		layout1.addWidget(self.journalBox)
+		self.submitButton = QPushButton('Submit Entry')
+		self.submitButton.clicked.connect(self.submit_entry)
+		layout1.addWidget(self.submitButton)
+
+		layout2 = QVBoxLayout()
+		self.dateedit = QDateEdit(calendarPopup=True)
+		self.dateedit.setDateTime(QDateTime.currentDateTime())
+		layout2.addWidget(self.dateedit)
+		self.findButton = QPushButton()
+		self.findButton.clicked.connect(self.find_entries)
+		layout2.addWidget(self.findButton)
+		self.formLayout3 = QFormLayout()
+		self.groupBox3 = QGroupBox()
+		self.scrollarea3 = QScrollArea()
+		self.scrollarea3.setWidget(self.groupBox3)
+		self.scrollarea3.setWidgetResizable(True)
+		layout2.addWidget(self.scrollarea3)
+
+		layoutBottom.addLayout(layout1)
+		layoutBottom.addLayout(layout2)
+
+		superLayout.addLayout(layoutTop)
+		superLayout.addLayout(layoutBottom)
+		self.setLayout(superLayout)
+
+	def find_entries(self):
+		month = str(self.dateedit.date().month())
+		if len(month) == 1:
+			month = '0' + month
+		day = str(self.dateedit.date().day())
+		if len(day) == 1:
+			day = '0' + day
+		year = str(self.dateedit.date().year())
+		print(f'"{month}-{day}-{year}"')
+		query = QSqlQuery()
+		query.exec_(f'''
+			SELECT * FROM jounal 
+			WHERE DATE = "{month}-{day}-{year}"''')
+		self.entries = []
+		while query.next():
+			self.entries.append(query.values(1))
+		for entry in self.entries:
+			label = QLabel(entry)
+			self.formLayout3.addRow(label)
+		self.groupBox3.setLayout(self.formLayout3)
+		self.scrollarea3.update()
+		print(self.entries)
 
 
 
+		
 	def add_row(self):
 		ret = self.model.insertRows(self.model.rowCount(), 1)
 
@@ -476,16 +533,7 @@ class ErrorPopup(QWidget):
 		self.setLayout(layout)
 
 
-## Junk	layout2 = QVBoxLayout()
-#		self.today = date.today()
-#		self.today_str = self.today.strftime('%m-%d-%Y')
-#		self.dateLabel = QLabel(self.today_str)
-#		layout2.addWidget(self.dateLabel)
-#		self.journalBox = QPlainTextEdit()
-#		layout2.addWidget(self.journalBox)
-#		self.submitButton = QPushButton('Submit Entry')
-#		self.submitButton.clicked.connect(self.submit_entry)
-#		layout2.addWidget(self.submitButton)
+
 
 random_generic_strings = ['Great Work!', 'Effort is Progress', 'You\'re doing this! Push yourself!', 
 '"Believe you can and you\'re halfway there." - Theodore Roosevelt', '']
