@@ -14,7 +14,6 @@ from matplotlib.widgets import Slider
 import random
 import re
 
-#TODO: Update plots with new goal type
 #TODO: Add information to setup page
 #TODO: Add information to main page
 #TODO: Create clustering model and launch notification system
@@ -95,15 +94,50 @@ class MainWindow(QWidget):
 		combination = list(map(list, zip(*ticks)))
 		label_list, tick_list = combination
 
-		for name in columnNames[1:]:
-			target = np.nan
+		self.query.exec_('SELECT Me, Day FROM log')
+		me_values = []
+		day_values = []
+		while self.query.next():
+			try:
+				me_values.append(float(self.query.value(0)))
+			except: 
+				me_values.append(np.nan)
+			try:
+				day_values.append(float(self.query.value(1)))
+			except:
+				day_values.append(np.nan)
+
+		self.figure = MplCanvas(self, width=4, height=4, dpi=100)
+		self.figure.axes.plot(self.date_values, me_values, c='#557ff2')
+		self.figure.axes.plot(self.date_values, day_values, c='#ffa82e')
+		self.figure.axes.set_title('Me and Day')
+		self.figure.axes.legend(['Me', 'Day'], fontsize='small', facecolor='#1d1e1e', labelcolor='#ffffff', edgecolor='#bfbfbf')
+		self.figure.setMinimumHeight(280)
+		self.figure.axes.tick_params(rotation=25, labelsize=8)
+		self.figure.axes.set_xticks(tick_list, label_list)
+		self.figure.fig.tight_layout(rect=(0, .025, 1, 1))
+		self.figure.axes.set_facecolor('#1d1e1e')
+		self.figure.fig.patch.set_facecolor('#1d1e1e')
+		self.figure.axes.spines['bottom'].set_color('#bfbfbf')
+		self.figure.axes.spines['top'].set_color('#bfbfbf')
+		self.figure.axes.spines['left'].set_color('#bfbfbf')
+		self.figure.axes.spines['right'].set_color('#bfbfbf')
+		self.figure.axes.tick_params(color='#bfbfbf', labelcolor='#ffffff')
+
+
+		formLayout.addRow(self.figure)
+
+		for name in columnNames[3:]:
 			mean = np.nan
-			self.query.exec_(f'SELECT Goal FROM variables WHERE Variable = "{name}"')
+			Gtype = ''
+			target = ''
+			self.query.exec_(f'SELECT Goal, GoalType FROM variables WHERE Variable = "{name}"')
 			while self.query.next():
-				if isinstance(self.query.value(0), str):
-					target = np.nan
-				else:
+				try:
 					target = float(self.query.value(0))
+				except: 
+					target = self.query.value(0)
+				Gtype = self.query.value(1)
 
 			self.query.exec_(f'SELECT {name} FROM log;')
 			self.y_values = []
@@ -113,25 +147,34 @@ class MainWindow(QWidget):
 				else:
 					self.y_values.append(float(self.query.value(0)))
 
-			self.query.exec_(f'SELECT GoalType FROM variables WHERE GoalType = "Process Goal" AND "Goal" = "" And Variable = "{name}"')
-			while self.query.next():
-				if(self.query.value(0) == ''):
-					mean = np.nan
-				else:
-					mean = np.nanmean(np.array(self.y_values[-7:]))
-
-
 			self.figure = MplCanvas(self, width=4, height=4, dpi=100)
-			self.figure.axes.plot(self.date_values, self.y_values, c = '#557ff2')
 
-			if(~np.isnan(target)):
+			if(Gtype == 'Reference Goal'):
+				target_values = []
+				self.query.exec_(f'SELECT {target} FROM log')
+				while self.query.next():
+					try:
+						target_values.append(float(self.query.value(0)))
+					except:
+						target_values.append(np.nan)
+				rolling_mean = list(rolling_average(np.array(target_values)-np.array(self.y_values)))
+				zero6 = [0, 0, 0, 0, 0, 0]
+				
+				self.figure.axes.plot(self.date_values, zero6 + rolling_mean, c='#557ff2')
+				self.figure.axes.set_title(f'7 day rolling difference between\n {name} and {target}', color='#ffffff', fontsize='small')
+
+
+			else:
+				self.figure.axes.plot(self.date_values, self.y_values, c = '#557ff2')
+				self.figure.axes.set_title(name, color='#ffffff', fontsize='small')
+
+
+			if(isinstance(target, float)):
 				self.figure.axes.plot([self.date_values[0], self.date_values[-1]], [target, target], c='#ffa82e')
 				self.figure.axes.legend([name, 'Target Value'], fontsize='small', facecolor='#1d1e1e', labelcolor='#ffffff', edgecolor='#bfbfbf')
-			if(~np.isnan(mean)):
-				self.figure.axes.plot([self.date_values[0], self.date_values[-1]], [mean, mean], c='#6bcf7e')
-				self.figure.axes.legend([name, f'Previous 7 {name} Mean'], fontsize='small', facecolor='#1d1e1e', labelcolor='#ffffff', edgecolor='#bfbfbf')
+
+
 			self.figure.setMinimumHeight(280)
-			self.figure.axes.set_title(name, color='#ffffff')
 			self.figure.axes.tick_params(rotation=25, labelsize=8)
 			self.figure.axes.set_xticks(tick_list, label_list)
 			self.figure.fig.tight_layout(rect=(0, .025, 1, 1))
@@ -199,7 +242,6 @@ class MainWindow(QWidget):
 		if len(day) == 1:
 			day = '0' + day
 		year = str(self.dateedit.date().year())
-		print(f'"{month}-{day}-{year}"')
 		query = QSqlQuery()
 		query.exec_(f'''
 			SELECT * FROM journal 
@@ -218,7 +260,6 @@ class MainWindow(QWidget):
 			self.formLayout3.addRow(label)
 		self.groupBox3.setLayout(self.formLayout3)
 		self.scrollarea3.update()
-		print(self.entries)
 		
 	def add_row(self):
 		ret = self.model.insertRows(self.model.rowCount(), 1)
@@ -534,6 +575,11 @@ class ErrorPopup(QWidget):
 		self.label = QLabel()
 		layout.addWidget(self.label)
 		self.setLayout(layout)
+
+def rolling_average(a, n=7) :
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
 
 
 
