@@ -12,10 +12,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
 import random
+import re
 
 #TODO: Update plots with new goal type
-#TODO: Move Journal to bottom half. Split in half vertically between create entry
-#box and journal recall page
 #TODO: Add information to setup page
 #TODO: Add information to main page
 #TODO: Create clustering model and launch notification system
@@ -211,7 +210,11 @@ class MainWindow(QWidget):
 			self.entries.append(query.value(1))
 			self.times.append(query.value(2))
 		for (entry, time) in zip(self.entries, self.times):
-			label = QLabel(f'{time} - {entry}')
+			entry_split = entry.split('\n')
+			text = [re.sub("(.{100})", "\\1-\n", text, 0, re.DOTALL) for text in entry_split]
+			text = '\n'.join(text)
+			label = QLabel(f'{time} - {text}')
+
 			self.formLayout3.addRow(label)
 		self.groupBox3.setLayout(self.formLayout3)
 		self.scrollarea3.update()
