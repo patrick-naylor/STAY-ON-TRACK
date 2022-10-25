@@ -19,10 +19,6 @@ import re
 #TODO: Create clustering model and launch notification system
 #TODO: Work on styling/naming/logo
 
-sw = None
-app = QApplication([])
-
-
 class MainWindow(QWidget):
 	def __init__(self):
 		super().__init__()
@@ -63,7 +59,7 @@ class MainWindow(QWidget):
 			variables['GoalType'].append(self.query.value(1))
 			variables['Goal'].append(self.query.value(2))
 
-		for idx in range(len(variables['Variable'])):
+		for idx in range(1, len(variables['Variable'])):
 			comment = self.progress_comments(variables['Variable'][idx], variables['GoalType'][idx], variables['Goal'][idx])
 			comment_label = QLabel(comment)
 			formLayout.addRow(comment_label)
@@ -366,6 +362,8 @@ closer to your </font><font color="#557ff2">{target}</font><font color="white"> 
 			return f'''<font color="white">Over your last seven entries your </font><font color="#557ff2">{name}</font><font color="white"> is<br> 
 {percent} {closer_or_further} </font><font color="#557ff2">{target}</font><font color="white"> than your overall average<br>
 </font><font color="#f5f398">{rand_str}</font>'''
+		else:
+			return''
 
 
 
@@ -595,7 +593,10 @@ random_disimprove_strings = ['Don\'t let this discourage you, you\'re doing grea
 
 random_reached_goal_string = []
 
+
 if __name__ == '__main__':
+	app = QApplication([])
+	sw = None
 	if not setup:
 		sw = SetupWindow()
 		sw.show()
