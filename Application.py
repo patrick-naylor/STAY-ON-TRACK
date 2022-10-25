@@ -175,7 +175,7 @@ class MainWindow(QWidget):
 		self.dateedit = QDateEdit(calendarPopup=True)
 		self.dateedit.setDateTime(QDateTime.currentDateTime())
 		layout2.addWidget(self.dateedit)
-		self.findButton = QPushButton()
+		self.findButton = QPushButton('Find Entries')
 		self.findButton.clicked.connect(self.find_entries)
 		layout2.addWidget(self.findButton)
 		self.formLayout3 = QFormLayout()
@@ -203,30 +203,30 @@ class MainWindow(QWidget):
 		print(f'"{month}-{day}-{year}"')
 		query = QSqlQuery()
 		query.exec_(f'''
-			SELECT * FROM jounal 
-			WHERE DATE = "{month}-{day}-{year}"''')
+			SELECT * FROM journal 
+			WHERE Date = "{month}-{day}-{year}"''')
 		self.entries = []
+		self.times = []
 		while query.next():
-			self.entries.append(query.values(1))
-		for entry in self.entries:
-			label = QLabel(entry)
+			self.entries.append(query.value(1))
+			self.times.append(query.value(2))
+		for (entry, time) in zip(self.entries, self.times):
+			label = QLabel(f'{time} - {entry}')
 			self.formLayout3.addRow(label)
 		self.groupBox3.setLayout(self.formLayout3)
 		self.scrollarea3.update()
 		print(self.entries)
-
-
-
 		
 	def add_row(self):
 		ret = self.model.insertRows(self.model.rowCount(), 1)
 
 	def submit_entry(self):
 		entry = self.journalBox.document()
+		time = f'{QDateTime.currentDateTime().time().hour()}:{QDateTime.currentDateTime().time().minute()}'
 		query = QSqlQuery()
 		query.exec_(f'''
-			INSERT INTO journal (Date, Entry)
-			VALUES("{self.today_str}", "{entry.toPlainText()}")
+			INSERT INTO journal (Date, Entry, TimeStamp)
+			VALUES("{self.today_str}", "{entry.toPlainText()}", "{time}")
 			''')
 		self.journalBox.clear()
 
@@ -380,7 +380,7 @@ class CreateDBWindow(QWidget):
 
 		query.exec_('''
 			CREATE TABLE IF NOT EXISTS journal
-			(Date DATETIME, Entry TEXT)
+			(Date DATETIME, Entry TEXT, Timestamp TEXT)
 			''')
 		self.button = None
 		self.doneButton = None
