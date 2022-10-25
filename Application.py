@@ -4,6 +4,7 @@ from PyQt5.QtSql import *
 import sqlite3
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QDateTime
+from PyQt5.QtCore import QSize
 from preferences import setup
 from datetime import date
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -22,11 +23,36 @@ import re
 class MainWindow(QWidget):
 	def __init__(self):
 		super().__init__()
+		self.pw = None
+
 		superLayout = QVBoxLayout()
+		layoutHeader = QHBoxLayout()
+		line1 = QFrame()
+		line1.setStyleSheet('color: #ffa82e')
+		line1.setFrameShape(QFrame.HLine)
+		layoutHeader.addWidget(line1)
+		journalLabel = QLabel('Tracker')
+		journalLabel.setAlignment(Qt.AlignCenter)
+		journalLabel.setMaximumWidth(50)
+		layoutHeader.addWidget(journalLabel)
+		line2 = QFrame()
+		line2.setFrameShape(QFrame.HLine)
+		line2.setStyleSheet('color: #ffa82e')
+		layoutHeader.addWidget(line2)
+
 		layoutTop = QHBoxLayout()
 		layout1 = QVBoxLayout()
+		layout1_top = QHBoxLayout()
 		self.label = QLabel("Personal Log")
-		layout1.addWidget(self.label)
+		self.label.setAlignment(Qt.AlignCenter)
+		self.infoButtonModel = QPushButton('i', self)
+		self.infoButtonModel.setFixedSize(QSize(16, 16))
+		self.infoButtonModel.setStyleSheet('border-radius : 8; background-color: #404041')
+		self.infoButtonModel.clicked.connect(self.tracker_popup)
+		layout1_top.addWidget(self.label)
+		layout1_top.addWidget(self.infoButtonModel)
+		layout1.addLayout(layout1_top)
+
 		self.db = QSqlDatabase.addDatabase('QSQLITE')
 		self.db.setDatabaseName('personal_data.db')
 
@@ -47,6 +73,7 @@ class MainWindow(QWidget):
 
 		layout2 = QVBoxLayout()
 		self.label = QLabel('Progress Report')
+		self.label.setAlignment(Qt.AlignCenter)
 		layout2.addWidget(self.label)
 		formLayout = QFormLayout()
 		groupBox = QGroupBox()
@@ -74,6 +101,7 @@ class MainWindow(QWidget):
 
 		self.layout3 = QVBoxLayout()
 		self.plotProg = QLabel('Progress')
+		self.plotProg.setAlignment(Qt.AlignCenter)
 		self.layout3.addWidget(self.plotProg)
 		columnNum = self.model.columnCount()
 		columnNames = [self.model.headerData(col, Qt.Horizontal, Qt.DisplayRole) for col in range(columnNum)]
@@ -106,7 +134,7 @@ class MainWindow(QWidget):
 		self.figure = MplCanvas(self, width=4, height=4, dpi=100)
 		self.figure.axes.plot(self.date_values, me_values, c='#557ff2')
 		self.figure.axes.plot(self.date_values, day_values, c='#ffa82e')
-		self.figure.axes.set_title('Me and Day')
+		self.figure.axes.set_title('Me and Day', color='#ffffff', fontsize='small')
 		self.figure.axes.legend(['Me', 'Day'], fontsize='small', facecolor='#1d1e1e', labelcolor='#ffffff', edgecolor='#bfbfbf')
 		self.figure.setMinimumHeight(280)
 		self.figure.axes.tick_params(rotation=25, labelsize=8)
@@ -197,12 +225,33 @@ class MainWindow(QWidget):
 		layoutTop.addLayout(layout2)
 		layoutTop.addLayout(self.layout3)
 
+		layoutMiddle = QHBoxLayout()
+		line1 = QFrame()
+		line1.setFrameShape(QFrame.HLine)
+		line1.setStyleSheet('color: #ffa82e')
+		layoutMiddle.addWidget(line1)
+		journalLabel = QLabel('Journal')
+		journalLabel.setAlignment(Qt.AlignCenter)
+		journalLabel.setMaximumWidth(50)
+		layoutMiddle.addWidget(journalLabel)
+		line2 = QFrame()
+		line2.setFrameShape(QFrame.HLine)
+		line2.setStyleSheet('color: #ffa82e')
+		layoutMiddle.addWidget(line2)
+
+
 		layoutBottom = QHBoxLayout()
 		layout1 = QVBoxLayout()
-		self.today = date.today()
-		self.today_str = self.today.strftime('%m-%d-%Y')
-		self.dateLabel = QLabel(self.today_str)
-		layout1.addWidget(self.dateLabel)
+		journalHeader = QHBoxLayout()
+		self.dateeditWrite = QDateEdit(calendarPopup=True)
+		self.dateeditWrite.setDateTime(QDateTime.currentDateTime())
+		journalHeader.addWidget(self.dateeditWrite)
+		self.infoButtonJournal = QPushButton('i', self)
+		self.infoButtonJournal.setFixedSize(QSize(16, 16))
+		self.infoButtonJournal.setStyleSheet('border-radius : 8; background-color: #404041')
+		self.infoButtonJournal.clicked.connect(self.journal_popup)
+		journalHeader.addWidget(self.infoButtonJournal)
+		layout1.addLayout(journalHeader)
 		self.journalBox = QPlainTextEdit()
 		layout1.addWidget(self.journalBox)
 		self.submitButton = QPushButton('Submit Entry')
@@ -226,9 +275,33 @@ class MainWindow(QWidget):
 		layoutBottom.addLayout(layout1)
 		layoutBottom.addLayout(layout2)
 
+		superLayout.addLayout(layoutHeader)
 		superLayout.addLayout(layoutTop)
+		superLayout.addLayout(layoutMiddle)
 		superLayout.addLayout(layoutBottom)
 		self.setLayout(superLayout)
+
+	def tracker_popup(self):
+		if self.pw is None:
+			self.pw = Popup()
+		self.pw.label.setText('''PERSONAL TRACKER:
+This is where you can track your personal goals.
+To add a row hit the Add Row button then input the date and hit enter.
+Once the date is entered you can edit the empty cells by double clicking
+and inputting your values.''')
+		self.pw.show()
+
+	def journal_popup(self):
+		if self.pw is None:
+			self.pw = Popup()
+		self.pw.label.setText('''JOURNAL:
+Journaling is a great way to keep track of your life.
+STAY ON TRACK provides a journal editor where you can make entries 
+to your journal. For many it's easier to regularly journal by using
+a paper notebook. If you choose to use your own notebook make sure you
+mark down the dates or consider transcribing your entries here.
+			''')
+		self.pw.show()
 
 	def find_entries(self):
 		month = str(self.dateedit.date().month())
@@ -262,11 +335,19 @@ class MainWindow(QWidget):
 
 	def submit_entry(self):
 		entry = self.journalBox.document()
+		month = str(self.dateeditWrite.date().month())
+		if len(month) == 1:
+			month = '0' + month
+		day = str(self.dateeditWrite.date().day())
+		if len(day) == 1:
+			day = '0' + day
+		year = str(self.dateeditWrite.date().year())
+		today_str = f'{month}-{day}-{year}'
 		time = f'{QDateTime.currentDateTime().time().hour()}:{QDateTime.currentDateTime().time().minute()}'
 		query = QSqlQuery()
 		query.exec_(f'''
 			INSERT INTO journal (Date, Entry, TimeStamp)
-			VALUES("{self.today_str}", "{entry.toPlainText()}", "{time}")
+			VALUES("{today_str}", "{entry.toPlainText()}", "{time}")
 			''')
 		self.journalBox.clear()
 
@@ -450,7 +531,7 @@ class CreateDBWindow(QWidget):
 			self.targetText = None
 		if self.combobox.currentText() == 'Goal Type':
 			if self.pw is None:
-				self.pw = ErrorPopup()
+				self.pw = Popup()
 			self.pw.label.setText('Please select a Goal Type')
 			self.pw.show()
 		elif self.combobox.currentText() == 'Process Goal':
@@ -511,14 +592,14 @@ class CreateDBWindow(QWidget):
 		targetValue = self.targetText.text().replace(' ', '_')
 		if(goalValue in ['', '_', 'Goal_Name']):
 			if self.pw is None:
-				self.pw = ErrorPopup()
+				self.pw = Popup()
 			self.pw.label.setText('Please add Goal Name')
 			self.pw.show()
 			self.goalText.setText('Goal Name')
 			self.targetText.setText(self.target_strings[comboboxValue])
 		elif(targetValue in ['', '_', 'Target', 'Goal', 'Goal_Category_Name']):
 			if self.pw is None:
-				self.pw = ErrorPopup()
+				self.pw = Popup()
 			self.pw.label.setText(f'Please add {self.target_strings[comboboxValue]} value')
 			self.pw.show()
 			self.goalText.setText('Goal Name')
@@ -566,7 +647,7 @@ class MplCanvas(FigureCanvasQTAgg):
         self.axes = self.fig.add_subplot(111)
         super(MplCanvas, self).__init__(self.fig)
 
-class ErrorPopup(QWidget):
+class Popup(QWidget):
 	def __init__(self):
 		super().__init__()
 		layout = QVBoxLayout()
@@ -593,9 +674,9 @@ random_disimprove_strings = ['Don\'t let this discourage you, you\'re doing grea
 
 random_reached_goal_string = []
 
-
 if __name__ == '__main__':
 	app = QApplication([])
+	app.setStyle('Fusion')
 	sw = None
 	if not setup:
 		sw = SetupWindow()
