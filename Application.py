@@ -15,7 +15,8 @@ import random
 import re
 import pandas as pd
 
-#TODO: Change Add Row to automatically add next consecutive date
+#TODO: Generate sample data with much larger sample size
+#TODO: potentially see if there are any blogs whose data I can scrape
 #TODO: Create clustering model and launch notification system
 #TODO: Work on styling/naming/logo
 
@@ -67,7 +68,7 @@ class MainWindow(QWidget):
 		layout1.addWidget(self.view)
 
 		layoutAddRow = QHBoxLayout()
-		self.addButton = QPushButton('Add a Row')
+		self.addButton = QPushButton('Add Row')
 		self.addButton.clicked.connect(self.add_row)
 		self.addColumn = QPushButton('Add a Column')
 		self.addColumn.clicked.connect(self.add_column)
@@ -388,8 +389,8 @@ class MainWindow(QWidget):
 			self.pw = Popup()
 		self.pw.label.setText('''PERSONAL TRACKER:
 This is where you can track your personal goals.
-To add a row hit the Add Row button then input the date and hit enter.
-Once the date is entered you can edit the empty cells by double clicking
+To add a row hit the 'Add Row' button. Once the next date is
+added you can edit the empty cells by double clicking
 and inputting your values.''')
 		self.pw.show()
 
