@@ -831,6 +831,19 @@ def load_cluster_data():
 
 	df = pd.DataFrame.from_dict(data_dict)
 
+	for col in df.columns:
+		data = var_df[var_df['var'] == col]
+		gtype = np.array(data['gtype'])[0]
+		if gtype == 'Outcome Goal':
+			df[col] = df[col].interpolate(method='linear', limit_areg='inside')
+
+		elif col != 'Date':
+			mean = df[col].mean()
+			m1 = df[col].shift().notna()
+			m2 = df[col].shift(-1).notna()
+			m3 = df[col].isna()
+			df.loc[m1&m2&m3, col] = mean
+
 	date_len = np.shape(df['Date'])[0]
 	one_thirds_date = date_len - (float(date_len) * (2/3))
 	drops = []
@@ -842,19 +855,11 @@ def load_cluster_data():
 		elif df[col].isna().sum() > one_thirds_date:
 			drops.append(col)
 
+
 	df = df.drop(drops, axis=1)
-	for col in df.columns:
-		data = var_df[var_df['var'] == col]
-		gtype = np.array(data['gtype'])[0]
-		if gtype == 'Outcome Goal':
-			df[col] = df[col].interpolate(method='linear', limit=date_len, limit_direction='both')
+	df = df.dropna(axis=0, how='any')
 
-		elif col != 'Date':
-			mean = df[col].mean()
-			df[col] = df[col].fillna(mean)
-	df.dropna(axis=0, how='any')
-
-	return(date_len, df)
+	return(df)
 
 
 
@@ -881,7 +886,7 @@ if __name__ == '__main__':
 		db.setDatabaseName('personal_data.db')
 		db.close()
 		db.open()
-		date_len, df = load_cluster_data()
+		cluster_df = load_cluster_data()
 	app.setStyle('Fusion')
 	sw = None
 	if not setup:
