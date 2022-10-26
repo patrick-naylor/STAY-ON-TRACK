@@ -16,8 +16,6 @@ import random
 import re
 
 #TODO: Add information to setup page
-#TODO: Add column button
-#TODO: Add refresh button
 #TODO: Create clustering model and launch notification system
 #TODO: Work on styling/naming/logo
 
@@ -25,7 +23,7 @@ class MainWindow(QWidget):
 	def __init__(self):
 		super().__init__()
 		self.pw = None
-
+		self.dbw = None
 		superLayout = QVBoxLayout()
 		layoutHeader = QHBoxLayout()
 		line1 = QFrame()
@@ -50,7 +48,10 @@ class MainWindow(QWidget):
 		self.infoButtonModel.setFixedSize(QSize(16, 16))
 		self.infoButtonModel.setStyleSheet('border-radius : 8; background-color: #404041')
 		self.infoButtonModel.clicked.connect(self.tracker_popup)
+		self.refreshModel = QPushButton('Refresh')
+		self.refreshModel.clicked.connect(self.refresh_model)
 		layout1_top.addWidget(self.label)
+		layout1_top.addWidget(self.refreshModel)
 		layout1_top.addWidget(self.infoButtonModel)
 		layout1.addLayout(layout1_top)
 
@@ -70,10 +71,10 @@ class MainWindow(QWidget):
 		layoutAddRow = QHBoxLayout()
 		self.addButton = QPushButton('Add a Row')
 		self.addButton.clicked.connect(self.add_row)
+		self.addColumn = QPushButton('Add a Column')
+		self.addColumn.clicked.connect(self.add_column)
 		layoutAddRow.addWidget(self.addButton)
-		self.refreshModel = QPushButton('Refresh')
-		self.refreshModel.clicked.connect(self.refresh_model)
-		layoutAddRow.addWidget(self.refreshModel)
+		layoutAddRow.addWidget(self.addColumn)
 		layout1.addLayout(layoutAddRow)
 
 
@@ -378,7 +379,11 @@ class MainWindow(QWidget):
 				self.groupBox2.children()[idx+2].p1[0].set_xdata(self.date_values)
 				self.groupBox2.children()[idx+2].draw()
 
-
+	def add_column(self):
+		if self.dbw is None:
+			self.dbw = CreateDBWindow()
+		self.dbw.show()
+		self.close()
 
 	def tracker_popup(self):
 		if self.pw is None:
@@ -760,6 +765,13 @@ def rolling_average(a, n=7) :
     ret = np.cumsum(a, dtype=float)
     ret[n:] = ret[n:] - ret[:-n]
     return ret[n - 1:] / n
+
+class Nothing():
+	def __init__(self):
+		self.name = 'Nothing'
+
+	def show(self):
+		self.name = 'Nothing2'
 
 
 
