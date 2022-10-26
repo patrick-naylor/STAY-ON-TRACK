@@ -55,8 +55,6 @@ class MainWindow(QWidget):
 		layout1_top.addWidget(self.infoButtonModel)
 		layout1.addLayout(layout1_top)
 
-		self.db = QSqlDatabase.addDatabase('QSQLITE')
-		self.db.setDatabaseName('personal_data.db')
 
 		self.model = QSqlTableModel()
 		self.model.setTable('log')
@@ -383,7 +381,7 @@ class MainWindow(QWidget):
 		if self.dbw is None:
 			self.dbw = CreateDBWindow()
 		self.dbw.show()
-		self.close()
+		self.dbw.w = Nothing()
 
 	def tracker_popup(self):
 		if self.pw is None:
@@ -580,7 +578,15 @@ class CreateDBWindow(QWidget):
 	def __init__(self):
 		super().__init__()
 		self.layout = QVBoxLayout()
+		self.infoLabelLayout = QHBoxLayout()
 		self.label = QLabel("Create DB Window")
+		self.infoButton = QPushButton('i', self)
+		self.infoButton.setFixedSize(QSize(16, 16))
+		self.infoButton.setStyleSheet('border-radius : 8; background-color: #404041')
+		self.infoButton.clicked.connect(self.setup_popup)
+		self.infoLabelLayout.addWidget(self.label)
+		self.infoLabelLayout.addWidget(self.infoButton)
+		self.layout.addLayout(self.infoLabelLayout)
 		self.w = None
 		self.layout.addWidget(self.label)
 		self.db = QSqlDatabase.addDatabase('QSQLITE')
@@ -623,7 +629,7 @@ class CreateDBWindow(QWidget):
 
 	def generate_menu(self):
 		self.pw = None
-		self.target_strings = {'Process Goal': 'Target', 'Outcome Goal': 'Goal', 'Reference Goal': 'Goal Category Name'}
+		self.target_strings = {'Process Goal': 'Target', 'Outcome Goal': 'Target', 'Reference Goal': 'Goal Category Name'}
 		if(self.button != None):
 			self.layout.removeWidget(self.button)
 			self.layout.removeWidget(self.doneButton)
@@ -679,8 +685,6 @@ class CreateDBWindow(QWidget):
 			self.layout.addWidget(self.doneButton)
 		self.setLayout(self.layout)
 
-
-
 	def done(self):
 		with open('preferences.py', 'w') as f:
 			f.write('setup = True')
@@ -689,6 +693,30 @@ class CreateDBWindow(QWidget):
 			self.w = MainWindow()
 		self.w.show()
 		self.close()
+
+	def setup_popup(self):
+		if self.pw is None:
+			self.pw = Popup()
+		self.pw.label.setText('''SETUP:
+In order to track your life you need to add the categories you want
+to track. STAY ON TRACK supports three different types of goals.
+
+Process Goals: Goals where you intend to maintain a daily target
+example: I want to do 30 push ups a day. Here your "Goal Name"
+would be push ups and your "Target" would be 30.
+
+Outcome Goals: Goals where you have a target you want to reach over
+time.
+example: I want to be able to run a marathon. Here you would track how
+many miles you run each day. The "Goal Name" would be named miles and the
+"Target" would be 26.2
+
+Reference Goals: Goals that change every day.
+example: I want to complete all of my daily work tasks. For this you 
+would track your tasks and tasks completed each day. The "Goal Name" would
+be tasks completed and the "Goal Category Name" would be tasks
+''')
+		self.pw.show()
 
 	def add_column(self):
 		goalValue = self.goalText.text().replace(' ', '_')
@@ -788,6 +816,10 @@ random_disimprove_strings = ['Don\'t let this discourage you, you\'re doing grea
 random_reached_goal_string = []
 
 if __name__ == '__main__':
+	if setup:
+		db = QSqlDatabase.addDatabase('QSQLITE')
+		db.setDatabaseName('personal_data.db')
+
 	app = QApplication([])
 	app.setStyle('Fusion')
 	sw = None
