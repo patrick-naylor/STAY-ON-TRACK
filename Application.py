@@ -433,7 +433,18 @@ mark down the dates or consider transcribing your entries here.
 		self.scrollarea3.update()
 		
 	def add_row(self):
-		ret = self.model.insertRows(self.model.rowCount(), 1)
+		self.query.exec_('''SELECT Date FROM log
+			ORDER BY Date DESC
+			LIMIT 1''')
+		prev_date = ''
+		while self.query.next():
+			prev_date = self.query.value(0)
+		next_date = f'{prev_date[:3]}{int(prev_date[3:5]) +1}{prev_date[5:]}'
+		print(next_date)
+		self.query.exec_(f'''INSERT INTO log (Date)
+			VALUES ("{next_date}")''')
+		self.model.select()
+
 
 	def submit_entry(self):
 		entry = self.journalBox.document()
