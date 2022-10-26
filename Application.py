@@ -1,7 +1,6 @@
 # Written by Patrick Naylor
 from PyQt5.QtWidgets import *
 from PyQt5.QtSql import *
-import sqlite3
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QDateTime
 from PyQt5.QtCore import QSize
@@ -14,8 +13,9 @@ import numpy as np
 from matplotlib.widgets import Slider
 import random
 import re
+import pandas as pd
 
-#TODO: Add information to setup page
+#TODO: Change Add Row to automatically add next consecutive date
 #TODO: Create clustering model and launch notification system
 #TODO: Work on styling/naming/logo
 
@@ -801,6 +801,67 @@ class Nothing():
 	def show(self):
 		self.name = 'Nothing2'
 
+def load_cluster_data(): 
+	query = QSqlQuery()
+	query.exec_('SELECT Variable, GoalType, Goal FROM variables')
+	variables = ['Date', 'Me', 'Day']
+	types = ['', '', '',]
+	targets = ['', '', '',]
+
+	data_dict = {}
+	while query.next():
+		variables.append(query.value(0))
+		types.append(query.value(1))
+		targets.append(query.value(2))
+	var_dict = {'var': variables, 'gtype': types, 'target': targets}
+	var_df = pd.DataFrame.from_dict(var_dict)
+
+	for var in variables:
+		data_dict[var] = []
+	query.exec_('SELECT * FROM log')
+	while query.next():
+		for idx, key in enumerate(data_dict.keys()):
+			if key != 'Date':
+				try:
+					data_dict[key].append(float(query.value(idx)))
+				except:
+					data_dict[key].append(np.nan)
+			else:
+				data_dict[key].append(query.value(idx))
+
+	df = pd.DataFrame.from_dict(data_dict)
+
+	date_len = np.shape(df['Date'])[0]
+	one_thirds_date = date_len - (float(date_len) * (2/3))
+	drops = []
+	for (gtype, col, target)  in zip(types, df.columns, targets): 
+		if gtype == 'Reference Goal':
+			df[col] = df[col]/df[target]
+		elif gtype == 'Reference Category':
+			drops.append(col)
+		elif df[col].isna().sum() > one_thirds_date:
+			drops.append(col)
+
+	df = df.drop(drops, axis=1)
+	print(df.columns)
+	for col in df.columns:
+		data = var_df[var_df['var'] == col]
+		gtype = np.array(data['gtype'])[0]
+		#print(gtype)
+		if gtype == 'Outcome Goal':
+			df[col] = df[col].interpolate(method='linear', limit=date_len, limit_direction='both')
+
+		elif col != 'Date':
+			mean = df[col].mean()
+			df[col] = df[col].fillna(mean)
+	df.dropna(axis=0, how='any')
+
+	return(date_len, df)
+
+
+
+
+
 
 
 
@@ -816,11 +877,13 @@ random_disimprove_strings = ['Don\'t let this discourage you, you\'re doing grea
 random_reached_goal_string = []
 
 if __name__ == '__main__':
+	app = QApplication([])
 	if setup:
 		db = QSqlDatabase.addDatabase('QSQLITE')
 		db.setDatabaseName('personal_data.db')
-
-	app = QApplication([])
+		db.close()
+		db.open()
+		load_cluster_data()
 	app.setStyle('Fusion')
 	sw = None
 	if not setup:
