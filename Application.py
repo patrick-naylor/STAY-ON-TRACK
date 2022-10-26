@@ -843,11 +843,9 @@ def load_cluster_data():
 			drops.append(col)
 
 	df = df.drop(drops, axis=1)
-	print(df.columns)
 	for col in df.columns:
 		data = var_df[var_df['var'] == col]
 		gtype = np.array(data['gtype'])[0]
-		#print(gtype)
 		if gtype == 'Outcome Goal':
 			df[col] = df[col].interpolate(method='linear', limit=date_len, limit_direction='both')
 
@@ -883,7 +881,7 @@ if __name__ == '__main__':
 		db.setDatabaseName('personal_data.db')
 		db.close()
 		db.open()
-		load_cluster_data()
+		date_len, df = load_cluster_data()
 	app.setStyle('Fusion')
 	sw = None
 	if not setup:
