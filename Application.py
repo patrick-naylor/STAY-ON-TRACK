@@ -16,7 +16,8 @@ import random
 import re
 
 #TODO: Add information to setup page
-#TODO: Add information to main page
+#TODO: Add column button
+#TODO: Add refresh button
 #TODO: Create clustering model and launch notification system
 #TODO: Work on styling/naming/logo
 
@@ -66,17 +67,22 @@ class MainWindow(QWidget):
 		self.view.resizeColumnsToContents()
 		layout1.addWidget(self.view)
 
+		layoutAddRow = QHBoxLayout()
 		self.addButton = QPushButton('Add a Row')
 		self.addButton.clicked.connect(self.add_row)
-		layout1.addWidget(self.addButton)
+		layoutAddRow.addWidget(self.addButton)
+		self.refreshModel = QPushButton('Refresh')
+		self.refreshModel.clicked.connect(self.refresh_model)
+		layoutAddRow.addWidget(self.refreshModel)
+		layout1.addLayout(layoutAddRow)
 
 
 		layout2 = QVBoxLayout()
 		self.label = QLabel('Progress Report')
 		self.label.setAlignment(Qt.AlignCenter)
 		layout2.addWidget(self.label)
-		formLayout = QFormLayout()
-		groupBox = QGroupBox()
+		self.formLayout1 = QFormLayout()
+		self.groupBox = QGroupBox()
 		variables = {'Variable': [], 'GoalType': [], 'Goal': []}
 		self.query = QSqlQuery()
 
@@ -89,11 +95,11 @@ class MainWindow(QWidget):
 		for idx in range(1, len(variables['Variable'])):
 			comment = self.progress_comments(variables['Variable'][idx], variables['GoalType'][idx], variables['Goal'][idx])
 			comment_label = QLabel(comment)
-			formLayout.addRow(comment_label)
+			self.formLayout1.addRow(comment_label)
 
-		groupBox.setLayout(formLayout)
+		self.groupBox.setLayout(self.formLayout1)
 		scrollarea = QScrollArea()
-		scrollarea.setWidget(groupBox)
+		scrollarea.setWidget(self.groupBox)
 		scrollarea.setWidgetResizable(True)
 
 		layout2.addWidget(scrollarea)
@@ -107,7 +113,7 @@ class MainWindow(QWidget):
 		columnNames = [self.model.headerData(col, Qt.Horizontal, Qt.DisplayRole) for col in range(columnNum)]
 
 		formLayout = QFormLayout()
-		groupBox = QGroupBox()
+		self.groupBox2 = QGroupBox()
 		self.query = QSqlQuery()
 
 		self.query.exec_('SELECT Date FROM log;')
@@ -132,8 +138,8 @@ class MainWindow(QWidget):
 				day_values.append(np.nan)
 
 		self.figure = MplCanvas(self, width=4, height=4, dpi=100)
-		self.figure.axes.plot(self.date_values, me_values, c='#557ff2')
-		self.figure.axes.plot(self.date_values, day_values, c='#ffa82e')
+		self.figure.p1 = self.figure.axes.plot(self.date_values, me_values, c='#557ff2')
+		self.figure.p2 = self.figure.axes.plot(self.date_values, day_values, c='#ffa82e')
 		self.figure.axes.set_title('Me and Day', color='#ffffff', fontsize='small')
 		self.figure.axes.legend(['Me', 'Day'], fontsize='small', facecolor='#1d1e1e', labelcolor='#ffffff', edgecolor='#bfbfbf')
 		self.figure.setMinimumHeight(280)
@@ -184,17 +190,17 @@ class MainWindow(QWidget):
 				rolling_mean = list(rolling_average(np.array(target_values)-np.array(self.y_values)))
 				zero6 = [0, 0, 0, 0, 0, 0]
 				
-				self.figure.axes.plot(self.date_values, zero6 + rolling_mean, c='#557ff2')
+				self.figure.p1 = self.figure.axes.plot(self.date_values, zero6 + rolling_mean, c='#557ff2')
 				self.figure.axes.set_title(f'7 day rolling difference between\n {name} and {target}', color='#ffffff', fontsize='small')
 
 
 			else:
-				self.figure.axes.plot(self.date_values, self.y_values, c = '#557ff2')
+				self.figure.p1 = self.figure.axes.plot(self.date_values, self.y_values, c = '#557ff2')
 				self.figure.axes.set_title(name, color='#ffffff', fontsize='small')
 
 
 			if(isinstance(target, float)):
-				self.figure.axes.plot([self.date_values[0], self.date_values[-1]], [target, target], c='#ffa82e')
+				self.figure.p2 = self.figure.axes.plot([self.date_values[0], self.date_values[-1]], [target, target], c='#ffa82e')
 				self.figure.axes.legend([name, 'Target Value'], fontsize='small', facecolor='#1d1e1e', labelcolor='#ffffff', edgecolor='#bfbfbf')
 
 
@@ -209,14 +215,15 @@ class MainWindow(QWidget):
 			self.figure.axes.spines['left'].set_color('#bfbfbf')
 			self.figure.axes.spines['right'].set_color('#bfbfbf')
 			self.figure.axes.tick_params(color='#bfbfbf', labelcolor='#ffffff')
+			self.figure.update()
 
 
 			formLayout.addRow(self.figure)
 
-		groupBox.setLayout(formLayout)
+		self.groupBox2.setLayout(formLayout)
 
 		scrollarea = QScrollArea()
-		scrollarea.setWidget(groupBox)
+		scrollarea.setWidget(self.groupBox2)
 		scrollarea.setWidgetResizable(True)
 
 		self.layout3.addWidget(scrollarea)
@@ -280,6 +287,98 @@ class MainWindow(QWidget):
 		superLayout.addLayout(layoutMiddle)
 		superLayout.addLayout(layoutBottom)
 		self.setLayout(superLayout)
+
+	def refresh_model(self):
+		self.model.select()
+		for widget in self.groupBox.children()[1:]:
+			widget.setText
+		self.query = QSqlQuery()
+		variables = {'Variable': [], 'GoalType': [], 'Goal': []}
+		self.query.exec_('SELECT Variable, GoalType, Goal FROM variables')
+		while self.query.next():
+			variables['Variable'].append(self.query.value(0))
+			variables['GoalType'].append(self.query.value(1))
+			variables['Goal'].append(self.query.value(2))
+
+		updated_comments = []
+		for idx in range(1, len(variables['Variable'])):
+			comment = self.progress_comments(variables['Variable'][idx], variables['GoalType'][idx], variables['Goal'][idx])
+			updated_comments.append(comment)
+
+		for idx, widget in enumerate(self.groupBox.children()[1:]):
+			widget.setText(updated_comments[idx])
+
+		self.query.exec_('SELECT Date FROM log;')
+		self.date_values = []
+		while self.query.next():
+			self.date_values.append(self.query.value(0))
+		ticks = [(tick[:-4] + tick[-2:], idx) for idx, tick in enumerate(self.date_values) if tick[3:5] in ['01', '15']]
+		combination = list(map(list, zip(*ticks)))
+		label_list, tick_list = combination
+
+		self.query.exec_('SELECT Me, Day FROM log')
+		me_values = []
+		day_values = []
+		while self.query.next():
+			try:
+				me_values.append(float(self.query.value(0)))
+			except: 
+				me_values.append(np.nan)
+			try:
+				day_values.append(float(self.query.value(1)))
+			except:
+				day_values.append(np.nan)
+
+		self.groupBox2.children()[1].p1[0].set_ydata(me_values)
+		self.groupBox2.children()[1].p2[0].set_ydata(day_values)
+		self.groupBox2.children()[1].p1[0].set_xdata(self.date_values)
+		self.groupBox2.children()[1].p2[0].set_xdata(self.date_values)
+
+		self.groupBox2.children()[1].draw()
+		columnNum = self.model.columnCount()
+		columnNames = [self.model.headerData(col, Qt.Horizontal, Qt.DisplayRole) for col in range(columnNum)]
+		for idx, name in enumerate(columnNames[3:]):
+			mean = np.nan
+			Gtype = ''
+			target = ''
+			self.query.exec_(f'SELECT Goal, GoalType FROM variables WHERE Variable = "{name}"')
+			while self.query.next():
+				try:
+					target = float(self.query.value(0))
+				except: 
+					target = self.query.value(0)
+				Gtype = self.query.value(1)
+
+			self.query.exec_(f'SELECT {name} FROM log;')
+			self.y_values = []
+			while self.query.next():
+				if(self.query.value(0) == ''):
+					self.y_values.append(np.nan)
+				else:
+					self.y_values.append(float(self.query.value(0)))
+
+			self.figure = MplCanvas(self, width=4, height=4, dpi=100)
+
+			if(Gtype == 'Reference Goal'):
+				target_values = []
+				self.query.exec_(f'SELECT {target} FROM log')
+				while self.query.next():
+					try:
+						target_values.append(float(self.query.value(0)))
+					except:
+						target_values.append(np.nan)
+				rolling_mean = list(rolling_average(np.array(target_values)-np.array(self.y_values)))
+				zero6 = [0, 0, 0, 0, 0, 0]
+				
+				self.groupBox2.children()[idx+2].p1[0].set_ydata(zero6 + rolling_mean)
+				self.groupBox2.children()[idx+2].p1[0].set_xdata(self.date_values)
+				self.groupBox2.children()[idx+2].draw()
+			else:
+				self.groupBox2.children()[idx+2].p1[0].set_ydata(self.y_values)
+				self.groupBox2.children()[idx+2].p1[0].set_xdata(self.date_values)
+				self.groupBox2.children()[idx+2].draw()
+
+
 
 	def tracker_popup(self):
 		if self.pw is None:
@@ -645,6 +744,8 @@ class MplCanvas(FigureCanvasQTAgg):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
+        self.p1 = []
+        self.p2 = []
         super(MplCanvas, self).__init__(self.fig)
 
 class Popup(QWidget):
