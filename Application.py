@@ -15,8 +15,9 @@ import random
 import re
 import pandas as pd
 
+# TODO: Fix bug with empty pd.db file
+# TODO: Clean code 
 # TODO: Generate sample data with much larger sample size
-# TODO: potentially see if there are any blogs whose data I can scrape
 # TODO: Create clustering model and launch notification system
 # TODO: Work on styling/naming/logo
 
