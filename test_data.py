@@ -9,7 +9,7 @@ from scipy.optimize import curve_fit
 import random
 import sqlite3
 
-def main()
+def main():
 	x = np.arange(500) * ((2 * math.pi) / 49) * (500 / (365 / 12))
 	r = (np.random.random_sample(500) / 2) + 0.75
 	Day = (np.sin(x * r) + 1) / 2
@@ -53,9 +53,14 @@ def main()
 	    me_data_arrays.append(var)
 	    data_arrays.append(var * scalar)
 
+	dates = np.arange('2020-01', '2021-05-15', dtype='datetime64[D]')
+	dates_pd = pd.to_datetime(dates)
+	dates_str = dates_pd.strftime('%m-%d-%Y')
+
 	# print(np.mean(np.array(data_arrays), axis=0))
 	df = pd.DataFrame(
 	    {
+	    	"Date": dates_str, 
 	        "Me": np.mean(np.array(me_data_arrays), axis=0),
 	        "Day": Day,
 	        "Var1": data_arrays[0],
@@ -81,11 +86,13 @@ def main()
 	            "Process Goal",
 	            "Process Goal",
 	        ],
-	        "Goal": scalars,
+	        "Goal": (np.array(scalars)/2),
 	    }
 	)
 	df_var.to_sql("variables", conn, if_exists="replace", index=False)
 	conn.close()
+
+
 
 if __name__ == '__main__':
 	main()
