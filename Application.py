@@ -17,9 +17,11 @@ import pandas as pd
 
 # TODO: Fix bug with empty pd.db file
 # TODO: Clean code 
+# TODO: Comment code
 # TODO: Generate sample data with much larger sample size
 # TODO: Create clustering model and launch notification system
-# TODO: Work on styling/naming/logo
+# TODO: Work on naming/logo
+# TODO: Add correlation statements to comments block
 
 
 class MainWindow(QWidget):
