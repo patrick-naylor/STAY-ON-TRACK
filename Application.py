@@ -16,7 +16,7 @@ import re
 import pandas as pd
 
 # TODO: Fix bug with empty pd.db file
-# TODO: Clean code 
+# TODO: Clean code
 # TODO: Comment code
 # TODO: Generate sample data with much larger sample size
 # TODO: Create clustering model and launch notification system
@@ -912,7 +912,10 @@ class Nothing:
 
 def load_cluster_data():
     query = QSqlQuery()
-    query.exec_("SELECT Variable, GoalType, Goal FROM variables")
+    query.exec_(
+        """SELECT Variable, GoalType, Goal FROM variables
+    	ORDER BY ListOrder"""
+    )
     variables = ["Date", "Me", "Day"]
     types = [
         "",
@@ -930,7 +933,9 @@ def load_cluster_data():
         variables.append(query.value(0))
         types.append(query.value(1))
         targets.append(query.value(2))
+    print(variables)
     var_dict = {"var": variables, "gtype": types, "target": targets}
+    # print(var_dict)
     var_df = pd.DataFrame.from_dict(var_dict)
 
     for var in variables:
@@ -947,7 +952,7 @@ def load_cluster_data():
                 data_dict[key].append(query.value(idx))
 
     df = pd.DataFrame.from_dict(data_dict)
-
+    # print(df)
     for col in df.columns:
         data = var_df[var_df["var"] == col]
         gtype = np.array(data["gtype"])[0]
@@ -964,14 +969,23 @@ def load_cluster_data():
     date_len = np.shape(df["Date"])[0]
     one_thirds_date = date_len - (float(date_len) * (2 / 3))
     drops = []
-    for (gtype, col, target) in zip(types, df.columns, targets):
+    for (gtype, col, target) in zip(types, variables, targets):
+        if gtype == "Process Goal":
+            df[col] = df[col] / df[col].abs().max()
+        if gtype == "Outcome Goal":
+            df[col] = np.diff(df[col], prepend=[0])
+            df[col] = df[col] / df[col].abs().max()
         if gtype == "Reference Goal":
             df[col] = df[col] / df[target]
         elif gtype == "Reference Category":
             drops.append(col)
         elif df[col].isna().sum() > one_thirds_date:
             drops.append(col)
-
+    drops.append("Date")
+    df.reset_index(inplace=True)
+    df["Me"] = df["Me"] / df["Me"].abs().max()
+    df["Day"] = df["Day"] / df["Day"].abs().max()
+    print(df)
     df = df.drop(drops, axis=1)
     df = df.dropna(axis=0, how="any")
 
@@ -1009,6 +1023,7 @@ if __name__ == "__main__":
         db.close()
         db.open()
         cluster_df = load_cluster_data()
+        print(cluster_df)
     app.setStyle("Fusion")
     sw = None
     if not setup:
