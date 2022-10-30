@@ -990,7 +990,6 @@ def load_cluster_data():
         elif df[col].isna().sum() > one_thirds_date:
             drops.append(col)
     drops.append("Date")
-    df.reset_index(inplace=True)
     df["Me"] = df["Me"] / df["Me"].abs().max()
     df["Day"] = df["Day"] / df["Day"].abs().max()
     print(drops)
@@ -1010,7 +1009,7 @@ def load_cluster_data():
 
 def generate_clusters(df):
 	data = np.array(df)
-	clustering = cluster.DBSCAN().fit(data)
+	clustering = cluster.AgglomerativeClustering(n_clusters = 8).fit(data)
 	labels = clustering.labels_
 	sil = metrics.silhouette_score(data, labels)
 	print(sil)
@@ -1049,8 +1048,8 @@ if __name__ == "__main__":
         db.setDatabaseName("personal_data.db")
         db.close()
         db.open()
-        print(load_cluster_data().columns)
-        #generate_clusters(load_cluster_data())
+        #print(load_cluster_data().columns)
+        generate_clusters(load_cluster_data())
     app.setStyle("Fusion")
     sw = None
     if not setup:
