@@ -1008,11 +1008,13 @@ def load_cluster_data():
     return df
 
 def generate_clusters(df):
-	data = np.array(df)
-	clustering = cluster.AgglomerativeClustering(n_clusters = 8).fit(data)
-	labels = clustering.labels_
-	sil = metrics.silhouette_score(data, labels)
-	print(sil)
+    clusters = int(len(df.index)/3)
+    data = np.array(df)
+    clustering = cluster.KMeans(n_clusters=clusters).fit(data)
+    labels = clustering.labels_
+    sil = metrics.silhouette_score(data, labels)
+    print(sil)
+
 
 
 
