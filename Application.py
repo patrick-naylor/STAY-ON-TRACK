@@ -14,6 +14,8 @@ from matplotlib.widgets import Slider
 import random
 import re
 import pandas as pd
+from sklearn import cluster
+from sklearn import metrics
 
 # TODO: Fix bug with empty pd.db file
 # TODO: Clean code
@@ -97,7 +99,6 @@ class MainWindow(QWidget):
             variables["GoalType"].append(self.query.value(1))
             variables["Goal"].append(self.query.value(2))
 
-        print(variables["Variable"])
         for idx in range(len(variables["Variable"])):
             comment = self.progress_comments(
                 variables["Variable"][idx],
@@ -511,7 +512,6 @@ mark down the dates or consider transcribing your entries here.
         while self.query.next():
             prev_date = self.query.value(0)
         next_date = f"{prev_date[:3]}{int(prev_date[3:5]) +1}{prev_date[5:]}"
-        print(next_date)
         self.query.exec_(
             f"""INSERT INTO log (Date)
 			VALUES ("{next_date}")"""
@@ -690,7 +690,7 @@ class CreateDBWindow(QWidget):
         query.exec_(
             """
 			CREATE TABLE IF NOT EXISTS variables
-			(Variable TEXT, GoalType TEXT, Goal REAL)
+			(Variable TEXT, GoalType TEXT, Goal REAL, ListOrder INTEGER)
 			"""
         )
 
@@ -815,6 +815,12 @@ be tasks completed and the "Goal Category Name" would be tasks
         goalValue = self.goalText.text().replace(" ", "_")
         comboboxValue = self.combobox.currentText()
         targetValue = self.targetText.text().replace(" ", "_")
+        query = QSqlQuery()
+        query.exec_("SELECT ListOrder FROM variables;")
+        list_orders = []
+        while query.next():
+        	list_orders.append(query.value(0))
+        list_order = np.max(np.array(list_orders))
         if goalValue in ["", "_", "Goal_Name"]:
             if self.pw is None:
                 self.pw = Popup()
@@ -846,10 +852,12 @@ be tasks completed and the "Goal Category Name" would be tasks
                 f"""
 				INSERT INTO variables (Variable, GoalType, Goal)
 				VALUES
-				("{goalValue}", "{comboboxValue}", "{targetValue}"),
+				("{goalValue}", "{comboboxValue}", "{targetValue}", "{list_order}"),
 				("{targetValue}", "Reference Category", "")
 				"""
             )
+
+            list_order += 1
             self.layout.removeWidget(self.button)
             self.layout.removeWidget(self.goalText)
             self.layout.removeWidget(self.targetText)
@@ -867,9 +875,10 @@ be tasks completed and the "Goal Category Name" would be tasks
                 f"""
 				INSERT INTO variables (Variable, GoalType, Goal)
 				VALUES
-				("{goalValue}", "{comboboxValue}", "{targetValue}")
+				("{goalValue}", "{comboboxValue}", "{targetValue}", "{list_order})
 				"""
             )
+            list_order +=1
             self.layout.removeWidget(self.button)
             self.layout.removeWidget(self.goalText)
             self.layout.removeWidget(self.targetText)
@@ -933,7 +942,6 @@ def load_cluster_data():
         variables.append(query.value(0))
         types.append(query.value(1))
         targets.append(query.value(2))
-    print(variables)
     var_dict = {"var": variables, "gtype": types, "target": targets}
     # print(var_dict)
     var_df = pd.DataFrame.from_dict(var_dict)
@@ -985,11 +993,29 @@ def load_cluster_data():
     df.reset_index(inplace=True)
     df["Me"] = df["Me"] / df["Me"].abs().max()
     df["Day"] = df["Day"] / df["Day"].abs().max()
-    print(df)
+    print(drops)
     df = df.drop(drops, axis=1)
+    new_cols = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []}
+    for col in df.columns:
+        for key, val in new_cols.items():
+            val.append(f'{col}_{key}day')
+    dfs = []
+    for key in new_cols.keys():
+        dfs.append(df.shift(key))
+    for (d, val) in zip(dfs, new_cols.values()):
+        df[val] = d
     df = df.dropna(axis=0, how="any")
 
     return df
+
+def generate_clusters(df):
+	data = np.array(df)
+	clustering = cluster.DBSCAN().fit(data)
+	labels = clustering.labels_
+	sil = metrics.silhouette_score(data, labels)
+	print(sil)
+
+
 
 
 random_generic_strings = [
@@ -1017,13 +1043,14 @@ random_reached_goal_string = []
 
 if __name__ == "__main__":
     app = QApplication([])
+    list_order = 0
     if setup:
         db = QSqlDatabase.addDatabase("QSQLITE")
         db.setDatabaseName("personal_data.db")
         db.close()
         db.open()
-        cluster_df = load_cluster_data()
-        print(cluster_df)
+        print(load_cluster_data().columns)
+        #generate_clusters(load_cluster_data())
     app.setStyle("Fusion")
     sw = None
     if not setup:

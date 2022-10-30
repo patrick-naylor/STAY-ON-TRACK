@@ -87,6 +87,7 @@ def main():
 	            "Process Goal",
 	        ],
 	        "Goal": (np.array(scalars)/2),
+	        "ListOrder": np.arange(1, 7)
 	    }
 	)
 	df_var.to_sql("variables", conn, if_exists="replace", index=False)
