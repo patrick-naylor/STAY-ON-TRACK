@@ -20,8 +20,7 @@ from sklearn import metrics
 # TODO: Fix bug with empty pd.db file
 # TODO: Clean code
 # TODO: Comment code
-# TODO: Generate sample data with much larger sample size
-# TODO: Create clustering model and launch notification system
+# TODO: Finalize reate clustering model
 # TODO: Work on naming/logo
 # TODO: Add correlation statements to comments block
 
