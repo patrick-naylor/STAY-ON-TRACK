@@ -894,6 +894,9 @@ class ReportWindow(QWidget):
         self.report_date_range = [None,]
         self.current_df = pd.DataFrame({})
         self.current_date_range = [None, ]
+
+
+    def load_layout(self):
         super_layout = QVBoxLayout()
         plot_layout = QHBoxLayout()
         plot_header = QHBoxLayout()
@@ -901,10 +904,10 @@ class ReportWindow(QWidget):
         data_label.setAlignment(Qt.AlignCenter)
         data_label.setMaximumWidth(120)
         line1 = QFrame()
-        line1.setStyleSheet('color: #ffa822e')
+        line1.setStyleSheet('color: #ffa82e')
         line1.setFrameShape(QFrame.HLine)
         line2 = QFrame()
-        line2.setStyleSheet('color: #ffa822e')
+        line2.setStyleSheet('color: #ffa82e')
         line2.setFrameShape(QFrame.HLine)
         plot_header.addWidget(line1)
         plot_header.addWidget(data_label)
@@ -913,17 +916,17 @@ class ReportWindow(QWidget):
         for col in self.report_df.columns[:]:
             self.figure = MplCanvas(self, width=4, height=4, dpi=100)
             self.figure.p1 = self.figure.axes.plot(np.arange(1, 8), self.report_df[col], c='#557ff2')
-            self.figure.p2 = self.figure.axes.plot(np.arange(1, 8), self.report_df[col], c='#ffa82e')
+            self.figure.p2 = self.figure.axes.plot(np.arange(1, 8), self.current_df[col], c='#ffa82e')
             self.figure.axes.set_title(col, color='#ffffff', fontsize='small')
             self.figure.axes.legend(
-                [f'{report_date_range[0]} - {report_date_range[-1]}',
-                f'{current_date_range[0]} - {current_date_range[-1]}'],
+                [f'{self.report_date_range[0]} - {self.report_date_range[-1]}',
+                f'{self.current_date_range[0]} - {self.current_date_range[-1]}'],
                 fontsize='small',
                 facecolor='#1d1e1e',
                 labelcolor='#ffffff',
                 edgecolor='#bfbfbf',
                 )
-            self.figure.setMinimumHeight(280)
+            self.figure.setMinimumWidth(280)
             self.figure.axes.tick_params(rotation=25, labelsize=8)
             self.figure.fig.tight_layout(rect=(0, 0.025, 1, 1))
             self.figure.axes.set_facecolor("#1d1e1e")
@@ -999,12 +1002,14 @@ class ReportPromptWindow(QWidget):
     def open_report(self):
         if self.windows[self.idx] is None:
             self.windows[self.idx] = ReportWindow()
-            self.windows[self.idx].report_df = self.report_df
-            self.windows[self.idx].journal = self.journal
-            self.windows[self.idx].report_date_range = self.report_date_range
-            self.windows[self.idx].current_df = self.current_df
-            self.windows[self.idx].current_date_range = self.current_date_range
-            self.windows[self.idx].show()
+        self.windows[self.idx].report_df = self.report_df
+        self.windows[self.idx].journal = self.journal
+        self.windows[self.idx].report_date_range = self.report_date_range
+        self.windows[self.idx].current_df = self.current_df
+        self.windows[self.idx].current_date_range = self.current_date_range
+        self.windows[self.idx].load_layout()
+        self.windows[self.idx].show()
+        self.close()
 
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -1175,8 +1180,8 @@ if __name__ == "__main__":
         #print(load_cluster_data().columns)
         generate_clusters(load_cluster_data())
         report_windows = [None, ]
-        current_dict = {('2021-10-01', '2021-10-08'): (pd.DataFrame({'var1': [0, 1.1, 5, 3.3, 4, 8, 6.5], 'var2': [0, 11, 22, 31, 45, 51, 66]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
-        report_dict = {('2020-10-01', '2020-10-08'): (pd.DataFrame({'var1': [0, 1, 2, 3, 4, 5, 6], 'var2': [0, 10, 20, 30, 40, 50, 60]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
+        current_dict = {('2021-10-01', '2021-10-08'): (pd.DataFrame({'var1': [0, 1.1, 5, 3.3, 4, 8, 6.5], 'var2': [0, 11, 22, 31, 45, 51, 66], 'var3': [0, 9, 5, 28, 42, 49, 62]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
+        report_dict = {('2020-10-01', '2020-10-08'): (pd.DataFrame({'var1': [0, 1, 2, 3, 4, 5, 6], 'var2': [0, 10, 20, 30, 40, 50, 60], 'var3': [0, 10, 20, 30, 40, 50, 60]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
         rpw = ReportPromptWindow()
         rpw.report_dict = report_dict
         rpw.current_dict = current_dict
