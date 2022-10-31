@@ -467,7 +467,7 @@ STAY ON TRACK provides a journal editor where you can make entries
 to your journal. For many it's easier to regularly journal by using
 a paper notebook. If you choose to use your own notebook make sure you
 mark down the dates or consider transcribing your entries here.
-			"""
+            """
         )
         self.pw.show()
 
@@ -482,8 +482,8 @@ mark down the dates or consider transcribing your entries here.
         query = QSqlQuery()
         query.exec_(
             f'''
-			SELECT * FROM journal 
-			WHERE Date = "{month}-{day}-{year}"'''
+            SELECT * FROM journal 
+            WHERE Date = "{month}-{day}-{year}"'''
         )
         self.entries = []
         self.times = []
@@ -505,8 +505,8 @@ mark down the dates or consider transcribing your entries here.
     def add_row(self):
         self.query.exec_(
             """SELECT Date FROM log
-			ORDER BY Date DESC
-			LIMIT 1"""
+            ORDER BY Date DESC
+            LIMIT 1"""
         )
         prev_date = ""
         while self.query.next():
@@ -514,7 +514,7 @@ mark down the dates or consider transcribing your entries here.
         next_date = f"{prev_date[:3]}{int(prev_date[3:5]) +1}{prev_date[5:]}"
         self.query.exec_(
             f"""INSERT INTO log (Date)
-			VALUES ("{next_date}")"""
+            VALUES ("{next_date}")"""
         )
         self.model.select()
 
@@ -532,9 +532,9 @@ mark down the dates or consider transcribing your entries here.
         query = QSqlQuery()
         query.exec_(
             f"""
-			INSERT INTO journal (Date, Entry, TimeStamp)
-			VALUES("{today_str}", "{entry.toPlainText()}", "{time}")
-			"""
+            INSERT INTO journal (Date, Entry, TimeStamp)
+            VALUES("{today_str}", "{entry.toPlainText()}", "{time}")
+            """
         )
         self.journalBox.clear()
 
@@ -682,23 +682,23 @@ class CreateDBWindow(QWidget):
 
         query.exec_(
             """
-			CREATE TABLE IF NOT EXISTS log
-			(Date DATETIME, Me INTEGER, Day INTEGER)
-			"""
+            CREATE TABLE IF NOT EXISTS log
+            (Date DATETIME, Me INTEGER, Day INTEGER)
+            """
         )
 
         query.exec_(
             """
-			CREATE TABLE IF NOT EXISTS variables
-			(Variable TEXT, GoalType TEXT, Goal REAL, ListOrder INTEGER)
-			"""
+            CREATE TABLE IF NOT EXISTS variables
+            (Variable TEXT, GoalType TEXT, Goal REAL, ListOrder INTEGER)
+            """
         )
 
         query.exec_(
             """
-			CREATE TABLE IF NOT EXISTS journal
-			(Date DATETIME, Entry TEXT, Timestamp TEXT)
-			"""
+            CREATE TABLE IF NOT EXISTS journal
+            (Date DATETIME, Entry TEXT, Timestamp TEXT)
+            """
         )
         self.button = None
         self.doneButton = None
@@ -819,7 +819,7 @@ be tasks completed and the "Goal Category Name" would be tasks
         query.exec_("SELECT ListOrder FROM variables;")
         list_orders = []
         while query.next():
-        	list_orders.append(query.value(0))
+            list_orders.append(query.value(0))
         list_order = np.max(np.array(list_orders))
         if goalValue in ["", "_", "Goal_Name"]:
             if self.pw is None:
@@ -840,21 +840,21 @@ be tasks completed and the "Goal Category Name" would be tasks
             query = QSqlQuery()
             query.exec_(
                 f"""
-				ALTER TABLE log
-				ADD COLUMN {goalValue} REAL"""
+                ALTER TABLE log
+                ADD COLUMN {goalValue} REAL"""
             )
             query.exec_(
                 f"""
-				ALTER TABLE log
-				ADD COLUMN {targetValue} REAL"""
+                ALTER TABLE log
+                ADD COLUMN {targetValue} REAL"""
             )
             query.exec_(
                 f"""
-				INSERT INTO variables (Variable, GoalType, Goal)
-				VALUES
-				("{goalValue}", "{comboboxValue}", "{targetValue}", "{list_order}"),
-				("{targetValue}", "Reference Category", "")
-				"""
+                INSERT INTO variables (Variable, GoalType, Goal)
+                VALUES
+                ("{goalValue}", "{comboboxValue}", "{targetValue}", "{list_order}"),
+                ("{targetValue}", "Reference Category", "")
+                """
             )
 
             list_order += 1
@@ -868,15 +868,15 @@ be tasks completed and the "Goal Category Name" would be tasks
             query = QSqlQuery()
             query.exec_(
                 f"""
-				ALTER TABLE log
-				ADD COLUMN {goalValue} REAL"""
+                ALTER TABLE log
+                ADD COLUMN {goalValue} REAL"""
             )
             query.exec_(
                 f"""
-				INSERT INTO variables (Variable, GoalType, Goal)
-				VALUES
-				("{goalValue}", "{comboboxValue}", "{targetValue}", "{list_order})
-				"""
+                INSERT INTO variables (Variable, GoalType, Goal)
+                VALUES
+                ("{goalValue}", "{comboboxValue}", "{targetValue}", "{list_order})
+                """
             )
             list_order +=1
             self.layout.removeWidget(self.button)
@@ -885,6 +885,126 @@ be tasks completed and the "Goal Category Name" would be tasks
             self.button = None
             self.goalText = None
             self.targetText = None
+
+class ReportWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.report_df = None
+        self.journal = None
+        self.report_date_range = None
+        self.current_df = None
+        self.current_date_range = None
+        super_layout = QVBoxLayout()
+        plot_layout = QHBoxLayout()
+        plot_header = QHBoxLayout()
+        data_label = QLabel(f'Tracker From {self.report_date_range[0]} to {self.report_date_range[-1]} and Past 7 Days')
+        data_label.setAlignment(Qt.AlignCenter)
+        data_label.setMaximumWidth(120)
+        line1 = QFrame()
+        line1.setStyleSheet('color: #ffa822e')
+        line1.setFrameShape(QFrame.Hline)
+        line2 = QFrame()
+        line2.setStyleSheet('color: #ffa822e')
+        line2.setFrameShape(QFrame.Hline)
+        plot_header.addWidget(line1)
+        plot_header.addWidget(data_label)
+        plot_header.addWidget(line2)
+
+        for col in self.report_df.columns[:]:
+            self.figure = MplCanvas(self, width=4, height=4, dpi=100)
+            self.figure.p1 = self.figure.axes.plot(np.arange(1, 8), self.report_df[col], c='#557ff2')
+            self.figure.p2 = self.figure.axes.plot(np.arange(1, 8), self.report_df[col], c='#ffa82e')
+            self.figure.axes.set_title(col, color='#ffffff', fontsize='small')
+            self.figure.axes.legend(
+                [f'{report_date_range[0]} - {report_date_range[-1]}',
+                f'{current_date_range[0]} - {current_date_range[-1]}'],
+                fontsize='small',
+                facecolor='#1d1e1e',
+                labelcolor='#ffffff',
+                edgecolor='#bfbfbf',
+                )
+            self.figure.setMinimumHeight(280)
+            self.figure.axes.tick_params(rotation=25, labelsize=8)
+            self.figure.fig.tight_layout(rect=(0, 0.025, 1, 1))
+            self.figure.axes.set_facecolor("#1d1e1e")
+            self.figure.fig.patch.set_facecolor("#1d1e1e")
+            self.figure.axes.spines["bottom"].set_color("#bfbfbf")
+            self.figure.axes.spines["top"].set_color("#bfbfbf")
+            self.figure.axes.spines["left"].set_color("#bfbfbf")
+            self.figure.axes.spines["right"].set_color("#bfbfbf")
+            self.figure.axes.tick_params(color="#bfbfbf", labelcolor="#ffffff")
+
+            plot_layout.addWidget(self.figure)
+
+        self.group_box1 = QGroupBox()
+        self.group_box1.setMinimumWidth(360)
+        self.group_box1.setLayout(plot_layout)
+        self.scroll_area1 = QScrollArea()
+        self.scroll_area1.setWidget(self.group_box1)
+        self.scroll_area1.setWidgetResizable(True)
+
+        journal_header = QHBoxLayout()
+        journal_label = QLabel(f'Journal Entries From {self.report_date_range[0]} to {self.report_date_range[-1]}')
+        journal_label.setAlignment(Qt.AlignCenter)
+        journal_label.setMaximumWidth(100)
+        journal_header.addWidget(line1)
+        journal_header.addWidget(journal_label)
+        journal_header.addWidget(line2)
+
+        form_layout = QFormLayout()
+        for entry in self.journal:
+            entry_label = QLabel(entry)
+            self.form_layout.addRow(entry_label)
+    
+        self.group_box2 = QGroupBox()
+        self.group_box2.setLayout(form_layout)
+        self.scroll_area2 = QScrollArea()
+        self.scroll_area2.setWidget(self.group_box2)
+        self.scroll_area2.setWidgetResizable(True)
+
+        super_layout.addLayout(plot_header)
+        super_layout.addLayout(self.scroll_area1)
+        super_layout.addLayout(journal_header)
+        super_layout.addLayout(self.scroll_area2)
+
+        self.setLayout(super_layout)
+        
+class ReportPromptWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.report_dict = None
+        self.current_dict = None
+        self.windows = []
+        if self.report_dict != None:
+        	self.windows = [None for x in self.report_dict.keys()]
+        layout = QVBoxLayout()
+        label_start = QLabel('''Hey! 
+            You look like you went through something similar on these days''')
+        layout.addWidget(label_start)        
+
+        for idx, key_report, value_report, key, value in enumerate(zip(report_dict.items(), current_dict.items())):
+            self.report_date_range = np.arange(*key_report, dtype='datetime64[D]')
+            self.report_df = value_report[0]
+            self.current_date_range = np.arange(*key, dtype='datetime64[D]')
+            self.current_df = value[0]
+            self.journal = value_report[1]
+            self.idx = idx
+            button = QPushButton(f'{report_date_range[0]} - {report_date_range[-1]}')
+            button.clicked.connect(self.open_report)
+            layout.addWidget(button)
+
+        label_end = QLabel('Click a date range to check it out!')
+        layout.addWidget(label_end)
+
+    def open_report(self):
+        if self.windows[self.idx] is None:
+            self.windows[self.idx] = ReportWindow()
+            self.windows[self.idx].report_df = self.report_df
+            self.windows[self.idx].journal = self.journal
+            self.windows[self.idx].report_date_range = self.report_date_range
+            self.windows[self.idx].current_df = self.current_df
+            self.windows[self.idx].current_date_range = self.current_date_range
+            self.windows[self.idx].show()
 
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -923,7 +1043,7 @@ def load_cluster_data():
     query = QSqlQuery()
     query.exec_(
         """SELECT Variable, GoalType, Goal FROM variables
-    	ORDER BY ListOrder"""
+        ORDER BY ListOrder"""
     )
     variables = ["Date", "Me", "Day"]
     types = [
@@ -1044,15 +1164,24 @@ random_reached_goal_string = []
 
 if __name__ == "__main__":
     app = QApplication([])
+    app.setStyle("Fusion")
     list_order = 0
-    if setup:
+    rpw = None
+    if (setup) and (rpw is None):
         db = QSqlDatabase.addDatabase("QSQLITE")
         db.setDatabaseName("personal_data.db")
         db.close()
         db.open()
         #print(load_cluster_data().columns)
         generate_clusters(load_cluster_data())
-    app.setStyle("Fusion")
+        report_windows = []
+        current_dict = {('2021-10-01', '2021-10-08'): (pd.DataFrame({'var1': [0, 1.1, 5, 3.3, 4, 8, 6.5], 'var2': [0, 11, 22, 31, 45, 51, 66]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
+        report_dict = {('2020-10-01', '2020-10-08'): (pd.DataFrame({'var1': [0, 1, 2, 3, 4, 5, 6], 'var2': [0, 10, 20, 30, 40, 50, 60]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
+        rpw = ReportPromptWindow()
+        rpw.report_dict = report_dict
+        rpw.current_dict = current_dict
+        rpw.show()
+
     sw = None
     if not setup:
         sw = SetupWindow()
