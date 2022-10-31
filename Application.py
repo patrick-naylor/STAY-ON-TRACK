@@ -889,11 +889,11 @@ be tasks completed and the "Goal Category Name" would be tasks
 class ReportWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.report_df = None
-        self.journal = None
-        self.report_date_range = None
-        self.current_df = None
-        self.current_date_range = None
+        self.report_df = pd.DataFrame({})
+        self.journal = [None, ]
+        self.report_date_range = [None,]
+        self.current_df = pd.DataFrame({})
+        self.current_date_range = [None, ]
         super_layout = QVBoxLayout()
         plot_layout = QHBoxLayout()
         plot_header = QHBoxLayout()
@@ -902,10 +902,10 @@ class ReportWindow(QWidget):
         data_label.setMaximumWidth(120)
         line1 = QFrame()
         line1.setStyleSheet('color: #ffa822e')
-        line1.setFrameShape(QFrame.Hline)
+        line1.setFrameShape(QFrame.HLine)
         line2 = QFrame()
         line2.setStyleSheet('color: #ffa822e')
-        line2.setFrameShape(QFrame.Hline)
+        line2.setFrameShape(QFrame.HLine)
         plot_header.addWidget(line1)
         plot_header.addWidget(data_label)
         plot_header.addWidget(line2)
@@ -954,7 +954,7 @@ class ReportWindow(QWidget):
         form_layout = QFormLayout()
         for entry in self.journal:
             entry_label = QLabel(entry)
-            self.form_layout.addRow(entry_label)
+            form_layout.addRow(entry_label)
     
         self.group_box2 = QGroupBox()
         self.group_box2.setLayout(form_layout)
@@ -963,9 +963,9 @@ class ReportWindow(QWidget):
         self.scroll_area2.setWidgetResizable(True)
 
         super_layout.addLayout(plot_header)
-        super_layout.addLayout(self.scroll_area1)
+        super_layout.addWidget(self.scroll_area1)
         super_layout.addLayout(journal_header)
-        super_layout.addLayout(self.scroll_area2)
+        super_layout.addWidget(self.scroll_area2)
 
         self.setLayout(super_layout)
         
@@ -974,27 +974,27 @@ class ReportPromptWindow(QWidget):
         super().__init__()
         self.report_dict = None
         self.current_dict = None
-        self.windows = []
-        if self.report_dict != None:
-        	self.windows = [None for x in self.report_dict.keys()]
+        self.windows = None
         layout = QVBoxLayout()
         label_start = QLabel('''Hey! 
             You look like you went through something similar on these days''')
         layout.addWidget(label_start)        
-
-        for idx, key_report, value_report, key, value in enumerate(zip(report_dict.items(), current_dict.items())):
+        
+        for idx, ((key_report, value_report), (key, value)) in enumerate(zip(report_dict.items(), current_dict.items())):
             self.report_date_range = np.arange(*key_report, dtype='datetime64[D]')
             self.report_df = value_report[0]
             self.current_date_range = np.arange(*key, dtype='datetime64[D]')
             self.current_df = value[0]
             self.journal = value_report[1]
             self.idx = idx
-            button = QPushButton(f'{report_date_range[0]} - {report_date_range[-1]}')
+            button = QPushButton(f'{self.report_date_range[0]} - {self.report_date_range[-1]}')
             button.clicked.connect(self.open_report)
             layout.addWidget(button)
+            
 
         label_end = QLabel('Click a date range to check it out!')
         layout.addWidget(label_end)
+        self.setLayout(layout)
 
     def open_report(self):
         if self.windows[self.idx] is None:
@@ -1174,12 +1174,13 @@ if __name__ == "__main__":
         db.open()
         #print(load_cluster_data().columns)
         generate_clusters(load_cluster_data())
-        report_windows = []
+        report_windows = [None, ]
         current_dict = {('2021-10-01', '2021-10-08'): (pd.DataFrame({'var1': [0, 1.1, 5, 3.3, 4, 8, 6.5], 'var2': [0, 11, 22, 31, 45, 51, 66]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
         report_dict = {('2020-10-01', '2020-10-08'): (pd.DataFrame({'var1': [0, 1, 2, 3, 4, 5, 6], 'var2': [0, 10, 20, 30, 40, 50, 60]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
         rpw = ReportPromptWindow()
         rpw.report_dict = report_dict
         rpw.current_dict = current_dict
+        rpw.windows = report_windows
         rpw.show()
 
     sw = None
