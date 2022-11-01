@@ -52,7 +52,6 @@ def main():
 	    # print(np.corrcoef(Day, var)[0,1])
 	    me_data_arrays.append(var)
 	    data_arrays.append(var * scalar)
-
 	dates = np.arange('2020-01', '2021-05-15', dtype='datetime64[D]')
 	dates_pd = pd.to_datetime(dates)
 	dates_str = dates_pd.strftime('%m-%d-%Y')
@@ -71,7 +70,7 @@ def main():
 	        "Var6": data_arrays[5],
 	    }
 	)
-
+	print(scalars)
 	conn = sqlite3.connect("sample_data.db")
 	df.to_sql("log", conn, if_exists="replace", index=False)
 

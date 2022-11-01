@@ -116,6 +116,8 @@ class MainWindow(QWidget):
 
         layout2.addWidget(scrollarea)
 
+
+
         self.layout3 = QVBoxLayout()
         self.plotProg = QLabel("Progress")
         self.plotProg.setAlignment(Qt.AlignCenter)
@@ -136,7 +138,7 @@ class MainWindow(QWidget):
             self.date_values.append(self.query.value(0))
         ticks = [
             (tick[:-4] + tick[-2:], idx)
-            for idx, tick in enumerate(self.date_values)
+            for idx, tick in enumerate(self.date_values[-100:])
             if tick[3:5] in ["01", "15"]
         ]
         combination = list(map(list, zip(*ticks)))
@@ -156,9 +158,9 @@ class MainWindow(QWidget):
                 day_values.append(np.nan)
 
         self.figure = MplCanvas(self, width=4, height=4, dpi=100)
-        self.figure.p1 = self.figure.axes.plot(self.date_values, me_values, c="#557ff2")
+        self.figure.p1 = self.figure.axes.plot(self.date_values[-100:], me_values[-100:], c="#557ff2")
         self.figure.p2 = self.figure.axes.plot(
-            self.date_values, day_values, c="#ffa82e"
+            self.date_values[-100:], day_values[-100:], c="#ffa82e"
         )
         self.figure.axes.set_title("Me and Day", color="#ffffff", fontsize="small")
         self.figure.axes.legend(
@@ -220,7 +222,7 @@ class MainWindow(QWidget):
                 zero6 = [0, 0, 0, 0, 0, 0]
 
                 self.figure.p1 = self.figure.axes.plot(
-                    self.date_values, zero6 + rolling_mean, c="#557ff2"
+                    self.date_values[-100:], (zero6 + rolling_mean)[-100:], c="#557ff2"
                 )
                 self.figure.axes.set_title(
                     f"7 day rolling difference between\n {name} and {target}",
@@ -230,16 +232,17 @@ class MainWindow(QWidget):
 
             else:
                 self.figure.p1 = self.figure.axes.plot(
-                    self.date_values, self.y_values, c="#557ff2"
+                    self.date_values[-100:], self.y_values[-100:], c="#557ff2"
                 )
                 self.figure.axes.set_title(name, color="#ffffff", fontsize="small")
 
             if isinstance(target, float):
                 self.figure.p2 = self.figure.axes.plot(
-                    [self.date_values[0], self.date_values[-1]],
+                    [self.date_values[-100], self.date_values[-1]],
                     [target, target],
                     c="#ffa82e",
                 )
+                print('target: ', target)
                 self.figure.axes.legend(
                     [name, "Target Value"],
                     fontsize="small",
@@ -363,7 +366,7 @@ class MainWindow(QWidget):
             self.date_values.append(self.query.value(0))
         ticks = [
             (tick[:-4] + tick[-2:], idx)
-            for idx, tick in enumerate(self.date_values)
+            for idx, tick in enumerate(self.date_values[-100:])
             if tick[3:5] in ["01", "15"]
         ]
         combination = list(map(list, zip(*ticks)))
@@ -1118,7 +1121,7 @@ def load_cluster_data():
             drops.append(col)
         elif df[col].isna().sum() > one_thirds_date:
             drops.append(col)
-    drops.append("Date")
+    dates = df['Date']
     df["Me"] = df["Me"] / df["Me"].abs().max()
     df["Day"] = df["Day"] / df["Day"].abs().max()
     print(drops)
@@ -1126,23 +1129,35 @@ def load_cluster_data():
     new_cols = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []}
     for col in df.columns:
         for key, val in new_cols.items():
-            val.append(f'{col}_{key}day')
+            if col != 'Date':
+                val.append(f'{col}_{key}day')
     dfs = []
     for key in new_cols.keys():
         dfs.append(df.shift(key))
     for (d, val) in zip(dfs, new_cols.values()):
         df[val] = d
     df = df.dropna(axis=0, how="any")
+    df = df.drop(['Date'], axis=1)
+    print(df.columns)
+    return (df, np.array(dates))
 
-    return df
-
-def generate_clusters(df):
+def generate_clusters(df, dates):
     clusters = int(len(df.index)/3)
-    data = np.array(df)
-    clustering = cluster.KMeans(n_clusters=clusters).fit(data)
+    data_fit = np.array(df)[:-1,:]
+    data_pred = np.array(df)[-1:,:]
+    dates_fit = dates[:-1]
+    date_pred = dates[-1:]
+    clustering = cluster.KMeans(n_clusters=clusters)
+    clustering.fit(data_fit)
+    label_pred = clustering.predict(data_pred)
+    #print(label_pred)
     labels = clustering.labels_
-    sil = metrics.silhouette_score(data, labels)
-    print(sil)
+    data_match = data_fit[labels == label_pred[0]]
+
+    dates_match = dates_fit[labels == label_pred[0]]
+    print(labels)
+    #sil = metrics.silhouette_score(data_fit, labels)
+    #print(np.shape(data_fit), np.shape(data_pred))
 
 
 
@@ -1182,7 +1197,8 @@ if __name__ == "__main__":
         db.close()
         db.open()
         #print(load_cluster_data().columns)
-        generate_clusters(load_cluster_data())
+        df, dates = load_cluster_data()
+        generate_clusters(df, dates)
         report_windows = [None, ]
         current_dict = {('2021-10-01', '2021-10-08'): (pd.DataFrame({'var1': [0, 1.1, 5, 3.3, 4, 8, 6.5], 'var2': [0, 11, 22, 31, 45, 51, 66], 'var3': [0, 9, 5, 28, 42, 49, 62]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
         report_dict = {('2020-10-01', '2020-10-08'): (pd.DataFrame({'var1': [0, 1, 2, 3, 4, 5, 6], 'var2': [0, 10, 20, 30, 40, 50, 60], 'var3': [0, 10, 20, 30, 40, 50, 60]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
