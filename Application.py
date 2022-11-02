@@ -99,7 +99,7 @@ class MainWindow(QWidget):
             _variables["Goal"].append(self.query.value(2))
 
         for idx in range(len(_variables["Variable"])):
-            comment = self.progress_comments(
+            comment = self._progress_comments_(
                 _variables["Variable"][idx],
                 _variables["GoalType"][idx],
                 _variables["Goal"][idx],
