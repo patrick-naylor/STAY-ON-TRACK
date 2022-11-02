@@ -30,38 +30,38 @@ class MainWindow(QWidget):
         super().__init__()
         self.pw = None
         self.dbw = None
-        superLayout = QVBoxLayout()
-        layoutHeader = QHBoxLayout()
-        line1 = QFrame()
-        line1.setStyleSheet("color: #ffa82e")
-        line1.setFrameShape(QFrame.HLine)
-        layoutHeader.addWidget(line1)
-        journalLabel = QLabel("Tracker")
-        journalLabel.setAlignment(Qt.AlignCenter)
-        journalLabel.setMaximumWidth(50)
-        layoutHeader.addWidget(journalLabel)
-        line2 = QFrame()
-        line2.setFrameShape(QFrame.HLine)
-        line2.setStyleSheet("color: #ffa82e")
-        layoutHeader.addWidget(line2)
+        layout_super = QVBoxLayout()
+        layout_header = QHBoxLayout()
+        line_1 = QFrame()
+        line_1.setStyleSheet("color: #ffa82e")
+        line_1.setFrameShape(QFrame.HLine)
+        layout_header.addWidget(line_1)
+        label_journal = QLabel("Tracker")
+        label_journal.setAlignment(Qt.AlignCenter)
+        label_journal.setMaximumWidth(50)
+        layout_header.addWidget(label_journal)
+        line_2 = QFrame()
+        line_2.setFrameShape(QFrame.HLine)
+        line_2.setStyleSheet("color: #ffa82e")
+        layout_header.addWidget(line_2)
 
-        layoutTop = QHBoxLayout()
-        layout1 = QVBoxLayout()
-        layout1_top = QHBoxLayout()
-        self.label = QLabel("Personal Log")
-        self.label.setAlignment(Qt.AlignCenter)
-        self.infoButtonModel = QPushButton("i", self)
-        self.infoButtonModel.setFixedSize(QSize(16, 16))
-        self.infoButtonModel.setStyleSheet(
+        layout_top = QHBoxLayout()
+        layout_1 = QVBoxLayout()
+        layout_1top = QHBoxLayout()
+        self.label_log = QLabel("Personal Log")
+        self.label_log.setAlignment(Qt.AlignCenter)
+        self.button_infomodel = QPushButton("i", self)
+        self.button_infomodel.setFixedSize(QSize(16, 16))
+        self.button_infomodel.setStyleSheet(
             "border-radius : 8; background-color: #404041"
         )
-        self.infoButtonModel.clicked.connect(self.tracker_popup)
-        self.refreshModel = QPushButton("Refresh")
-        self.refreshModel.clicked.connect(self.refresh_model)
-        layout1_top.addWidget(self.label)
-        layout1_top.addWidget(self.refreshModel)
-        layout1_top.addWidget(self.infoButtonModel)
-        layout1.addLayout(layout1_top)
+        self.button_infomodel.clicked.connect(self._tracker_popup_)
+        self.refresh_model = QPushButton("Refresh")
+        self.refresh_model.clicked.connect(self._refresh_model_)
+        layout_1top.addWidget(self.label_log)
+        layout_1top.addWidget(self.refresh_model)
+        layout_1top.addWidget(self.button_infomodel)
+        layout_1.addLayout(layout_1top)
 
         self.model = QSqlTableModel()
         self.model.setTable("log")
@@ -72,95 +72,95 @@ class MainWindow(QWidget):
         self.view.setModel(self.model)
         self.view.resizeColumnsToContents()
         self.view.setMinimumWidth(360)
-        layout1.addWidget(self.view)
+        layout_1.addWidget(self.view)
 
-        layoutAddRow = QHBoxLayout()
-        self.addButton = QPushButton("Add Row")
-        self.addButton.clicked.connect(self.add_row)
-        self.addColumn = QPushButton("Add a Column")
-        self.addColumn.clicked.connect(self.add_column)
-        layoutAddRow.addWidget(self.addButton)
-        layoutAddRow.addWidget(self.addColumn)
-        layout1.addLayout(layoutAddRow)
+        layout_addrow = QHBoxLayout()
+        self.button_addrow = QPushButton("Add Row")
+        self.button_addrow.clicked.connect(self._add_row_)
+        self.button_addrowcolumn = QPushButton("Add a Column")
+        self.button_addrowcolumn.clicked.connect(self._add_column_)
+        layout_addrow.addWidget(self.button_addrow)
+        layout_addrow.addWidget(self.button_addrowcolumn)
+        layout_1.addLayout(layout_addrow)
 
-        layout2 = QVBoxLayout()
-        self.label = QLabel("Progress Report")
-        self.label.setAlignment(Qt.AlignCenter)
-        layout2.addWidget(self.label)
-        self.formLayout1 = QFormLayout()
-        self.groupBox = QGroupBox()
-        variables = {"Variable": [], "GoalType": [], "Goal": []}
+        layout_2 = QVBoxLayout()
+        self.label_progress = QLabel("Progress Report")
+        self.label_progress.setAlignment(Qt.AlignCenter)
+        layout_2.addWidget(self.label_progress)
+        self.layout_form1 = QFormLayout()
+        self.groupbox_1 = QGroupBox()
+        _variables = {"Variable": [], "GoalType": [], "Goal": []}
         self.query = QSqlQuery()
 
         self.query.exec_("SELECT Variable, GoalType, Goal FROM variables")
         while self.query.next():
-            variables["Variable"].append(self.query.value(0))
-            variables["GoalType"].append(self.query.value(1))
-            variables["Goal"].append(self.query.value(2))
+            _variables["Variable"].append(self.query.value(0))
+            _variables["GoalType"].append(self.query.value(1))
+            _variables["Goal"].append(self.query.value(2))
 
-        for idx in range(len(variables["Variable"])):
+        for idx in range(len(_variables["Variable"])):
             comment = self.progress_comments(
-                variables["Variable"][idx],
-                variables["GoalType"][idx],
-                variables["Goal"][idx],
+                _variables["Variable"][idx],
+                _variables["GoalType"][idx],
+                _variables["Goal"][idx],
             )
-            if variables["GoalType"][idx] != "Reference Category":
+            if _variables["GoalType"][idx] != "Reference Category":
                 comment_label = QLabel(comment)
-                self.formLayout1.addRow(comment_label)
+                self.layout_form1.addRow(comment_label)
 
-        self.groupBox.setMinimumWidth(360)
-        self.groupBox.setLayout(self.formLayout1)
-        scrollarea = QScrollArea()
-        scrollarea.setWidget(self.groupBox)
-        scrollarea.setWidgetResizable(True)
+        self.groupbox_1.setMinimumWidth(360)
+        self.groupbox_1.setLayout(self.layout_form1)
+        scrollarea_1 = QScrollArea()
+        scrollarea_1.setWidget(self.groupbox_1)
+        scrollarea_1.setWidgetResizable(True)
 
-        layout2.addWidget(scrollarea)
+        layout_2.addWidget(scrollarea_1)
 
-        self.layout3 = QVBoxLayout()
-        self.plotProg = QLabel("Progress")
-        self.plotProg.setAlignment(Qt.AlignCenter)
-        self.layout3.addWidget(self.plotProg)
-        columnNum = self.model.columnCount()
-        columnNames = [
+        self.layout_3 = QVBoxLayout()
+        self.label_plotprog = QLabel("Progress")
+        self.label_plotprog.setAlignment(Qt.AlignCenter)
+        self.layout_3.addWidget(self.label_plotprog)
+        _column_num = self.model.columnCount()
+        _column_names = [
             self.model.headerData(col, Qt.Horizontal, Qt.DisplayRole)
-            for col in range(columnNum)
+            for col in range(_column_num)
         ]
 
-        formLayout = QFormLayout()
-        self.groupBox2 = QGroupBox()
+        layout_form = QFormLayout()
+        self.groupbox_2 = QGroupBox()
         self.query = QSqlQuery()
 
         self.query.exec_("SELECT Date FROM log;")
-        self.date_values = []
+        self._date_values_ = []
         while self.query.next():
-            self.date_values.append(self.query.value(0))
-        ticks = [
+            self._date_values_.append(self.query.value(0))
+        _ticks = [
             (tick[:-4] + tick[-2:], idx)
-            for idx, tick in enumerate(self.date_values[-100:])
+            for idx, tick in enumerate(self._date_values_[-100:])
             if tick[3:5] in ["01", "15"]
         ]
-        combination = list(map(list, zip(*ticks)))
-        label_list, tick_list = combination
+        _combination = list(map(list, zip(*_ticks)))
+        _label_list, _tick_list = _combination
 
         self.query.exec_("SELECT Me, Day FROM log")
-        me_values = []
-        day_values = []
+        _me_values = []
+        _day_values = []
         while self.query.next():
             try:
-                me_values.append(float(self.query.value(0)))
+                _me_values.append(float(self.query.value(0)))
             except:
-                me_values.append(np.nan)
+                _me_values.append(np.nan)
             try:
-                day_values.append(float(self.query.value(1)))
+                _day_values.append(float(self.query.value(1)))
             except:
-                day_values.append(np.nan)
+                _day_values.append(np.nan)
 
         self.figure = MplCanvas(self, width=4, height=4, dpi=100)
         self.figure.p1 = self.figure.axes.plot(
-            self.date_values[-100:], me_values[-100:], c="#557ff2"
+            self._date_values_[-100:], _me_values[-100:], c="#557ff2"
         )
         self.figure.p2 = self.figure.axes.plot(
-            self.date_values[-100:], day_values[-100:], c="#ffa82e"
+            self._date_values_[-100:], _day_values[-100:], c="#ffa82e"
         )
         self.figure.axes.set_title("Me and Day", color="#ffffff", fontsize="small")
         self.figure.axes.legend(
@@ -172,7 +172,7 @@ class MainWindow(QWidget):
         )
         self.figure.setMinimumHeight(280)
         self.figure.axes.tick_params(rotation=25, labelsize=8)
-        self.figure.axes.set_xticks(tick_list, label_list)
+        self.figure.axes.set_xticks(_tick_list, _label_list)
         self.figure.fig.tight_layout(rect=(0, 0.025, 1, 1))
         self.figure.axes.set_facecolor("#1d1e1e")
         self.figure.fig.patch.set_facecolor("#1d1e1e")
@@ -182,67 +182,66 @@ class MainWindow(QWidget):
         self.figure.axes.spines["right"].set_color("#bfbfbf")
         self.figure.axes.tick_params(color="#bfbfbf", labelcolor="#ffffff")
 
-        formLayout.addRow(self.figure)
+        layout_form.addRow(self.figure)
 
-        for name in columnNames[3:]:
-            mean = np.nan
-            Gtype = ""
-            target = ""
+        for name in _column_names[3:]:
+            _mean = np.nan
+            _goal_type = ""
+            _target = ""
             self.query.exec_(
                 f'SELECT Goal, GoalType FROM variables WHERE Variable = "{name}"'
             )
             while self.query.next():
                 try:
-                    target = float(self.query.value(0))
+                    _target = float(self.query.value(0))
                 except:
-                    target = self.query.value(0)
-                Gtype = self.query.value(1)
+                    _target = self.query.value(0)
+                _goal_type = self.query.value(1)
 
             self.query.exec_(f"SELECT {name} FROM log;")
-            self.y_values = []
+            self._y_values_ = []
             while self.query.next():
                 if self.query.value(0) == "":
-                    self.y_values.append(np.nan)
+                    self._y_values_.append(np.nan)
                 else:
-                    self.y_values.append(float(self.query.value(0)))
+                    self._y_values_.append(float(self.query.value(0)))
 
             self.figure = MplCanvas(self, width=4, height=4, dpi=100)
 
-            if Gtype == "Reference Goal":
-                target_values = []
-                self.query.exec_(f"SELECT {target} FROM log")
+            if _goal_type == "Reference Goal":
+                _target_values = []
+                self.query.exec_(f"SELECT {_target} FROM log")
                 while self.query.next():
                     try:
-                        target_values.append(float(self.query.value(0)))
+                        _target_values.append(float(self.query.value(0)))
                     except:
-                        target_values.append(np.nan)
-                rolling_mean = list(
-                    rolling_average(np.array(target_values) - np.array(self.y_values))
+                        _target_values.append(np.nan)
+                _rolling_mean = list(
+                    rolling_average(np.array(_target_values) - np.array(self._y_values_))
                 )
-                zero6 = [0, 0, 0, 0, 0, 0]
+                _zero_6 = [0, 0, 0, 0, 0, 0]
 
                 self.figure.p1 = self.figure.axes.plot(
-                    self.date_values[-100:], (zero6 + rolling_mean)[-100:], c="#557ff2"
+                    self._date_values_[-100:], (_zero_6 + _rolling_mean)[-100:], c="#557ff2"
                 )
                 self.figure.axes.set_title(
-                    f"7 day rolling difference between\n {name} and {target}",
+                    f"7 day rolling difference between\n {name} and {_target}",
                     color="#ffffff",
                     fontsize="small",
                 )
 
             else:
                 self.figure.p1 = self.figure.axes.plot(
-                    self.date_values[-100:], self.y_values[-100:], c="#557ff2"
+                    self._date_values_[-100:], self._y_values_[-100:], c="#557ff2"
                 )
                 self.figure.axes.set_title(name, color="#ffffff", fontsize="small")
 
-            if isinstance(target, float):
+            if isinstance(_target, float):
                 self.figure.p2 = self.figure.axes.plot(
-                    [self.date_values[-100], self.date_values[-1]],
-                    [target, target],
+                    [self._date_values_[-100], self._date_values_[-1]],
+                    [_target, _target],
                     c="#ffa82e",
                 )
-                #print("target: ", target)
                 self.figure.axes.legend(
                     [name, "Target Value"],
                     fontsize="small",
@@ -253,7 +252,7 @@ class MainWindow(QWidget):
 
             self.figure.setMinimumHeight(280)
             self.figure.axes.tick_params(rotation=25, labelsize=8)
-            self.figure.axes.set_xticks(tick_list, label_list)
+            self.figure.axes.set_xticks(_tick_list, _label_list)
             self.figure.fig.tight_layout(rect=(0, 0.025, 1, 1))
             self.figure.axes.set_facecolor("#1d1e1e")
             self.figure.fig.patch.set_facecolor("#1d1e1e")
@@ -264,193 +263,193 @@ class MainWindow(QWidget):
             self.figure.axes.tick_params(color="#bfbfbf", labelcolor="#ffffff")
             self.figure.update()
 
-            formLayout.addRow(self.figure)
+            layout_form.addRow(self.figure)
 
-        self.groupBox2.setMinimumWidth(360)
-        self.groupBox2.setLayout(formLayout)
+        self.groupbox_2.setMinimumWidth(360)
+        self.groupbox_2.setLayout(layout_form)
 
-        scrollarea = QScrollArea()
-        scrollarea.setWidget(self.groupBox2)
-        scrollarea.setWidgetResizable(True)
+        scrollarea_2 = QScrollArea()
+        scrollarea_2.setWidget(self.groupbox_2)
+        scrollarea_2.setWidgetResizable(True)
 
-        self.layout3.addWidget(scrollarea)
+        self.layout_3.addWidget(scrollarea_2)
 
-        layoutTop.addLayout(layout1)
-        layoutTop.addLayout(layout2)
-        layoutTop.addLayout(self.layout3)
+        layout_top.addLayout(layout_1)
+        layout_top.addLayout(layout_2)
+        layout_top.addLayout(self.layout_3)
 
-        layoutMiddle = QHBoxLayout()
-        line1 = QFrame()
-        line1.setFrameShape(QFrame.HLine)
-        line1.setStyleSheet("color: #ffa82e")
-        layoutMiddle.addWidget(line1)
-        journalLabel = QLabel("Journal")
-        journalLabel.setAlignment(Qt.AlignCenter)
-        journalLabel.setMaximumWidth(50)
-        layoutMiddle.addWidget(journalLabel)
-        line2 = QFrame()
-        line2.setFrameShape(QFrame.HLine)
-        line2.setStyleSheet("color: #ffa82e")
-        layoutMiddle.addWidget(line2)
+        layout_middle = QHBoxLayout()
+        line_1 = QFrame()
+        line_1.setFrameShape(QFrame.HLine)
+        line_1.setStyleSheet("color: #ffa82e")
+        layout_middle.addWidget(line_1)
+        label_journal = QLabel("Journal")
+        label_journal.setAlignment(Qt.AlignCenter)
+        label_journal.setMaximumWidth(50)
+        layout_middle.addWidget(label_journal)
+        line_2 = QFrame()
+        line_2.setFrameShape(QFrame.HLine)
+        line_2.setStyleSheet("color: #ffa82e")
+        layout_middle.addWidget(line_2)
 
-        layoutBottom = QHBoxLayout()
-        layout1 = QVBoxLayout()
-        journalHeader = QHBoxLayout()
-        self.dateeditWrite = QDateEdit(calendarPopup=True)
-        self.dateeditWrite.setDateTime(QDateTime.currentDateTime())
-        journalHeader.addWidget(self.dateeditWrite)
-        self.infoButtonJournal = QPushButton("i", self)
-        self.infoButtonJournal.setFixedSize(QSize(16, 16))
-        self.infoButtonJournal.setStyleSheet(
+        layout_bottom = QHBoxLayout()
+        layout_1 = QVBoxLayout()
+        layout_journalheader = QHBoxLayout()
+        self.dateedit_write = QDateEdit(calendarPopup=True)
+        self.dateedit_write.setDateTime(QDateTime.currentDateTime())
+        layout_journalheader.addWidget(self.dateedit_write)
+        self.button_infojournal = QPushButton("i", self)
+        self.button_infojournal.setFixedSize(QSize(16, 16))
+        self.button_infojournal.setStyleSheet(
             "border-radius : 8; background-color: #404041"
         )
-        self.infoButtonJournal.clicked.connect(self.journal_popup)
-        journalHeader.addWidget(self.infoButtonJournal)
-        layout1.addLayout(journalHeader)
-        self.journalBox = QPlainTextEdit()
-        layout1.addWidget(self.journalBox)
-        self.submitButton = QPushButton("Submit Entry")
-        self.submitButton.clicked.connect(self.submit_entry)
-        layout1.addWidget(self.submitButton)
+        self.button_infojournal.clicked.connect(self._journal_popup_)
+        layout_journalheader.addWidget(self.button_infojournal)
+        layout_1.addLayout(layout_journalheader)
+        self.textbox_journal = QPlainTextEdit()
+        layout_1.addWidget(self.textbox_journal)
+        self.button_submit = QPushButton("Submit Entry")
+        self.button_submit.clicked.connect(self._submit_entry_)
+        layout_1.addWidget(self.button_submit)
 
-        layout2 = QVBoxLayout()
-        self.dateedit = QDateEdit(calendarPopup=True)
-        self.dateedit.setDateTime(QDateTime.currentDateTime())
-        layout2.addWidget(self.dateedit)
-        self.findButton = QPushButton("Find Entries")
-        self.findButton.clicked.connect(self.find_entries)
-        layout2.addWidget(self.findButton)
-        self.formLayout3 = QFormLayout()
-        self.groupBox3 = QGroupBox()
-        self.scrollarea3 = QScrollArea()
-        self.scrollarea3.setWidget(self.groupBox3)
-        self.scrollarea3.setWidgetResizable(True)
-        layout2.addWidget(self.scrollarea3)
+        layout_2 = QVBoxLayout()
+        self.dateedit_read = QDateEdit(calendarPopup=True)
+        self.dateedit_read.setDateTime(QDateTime.currentDateTime())
+        layout_2.addWidget(self.dateedit_read)
+        self.button_find = QPushButton("Find Entries")
+        self.button_find.clicked.connect(self._find_entries_)
+        layout_2.addWidget(self.button_find)
+        self.layout_form3 = QFormLayout()
+        self.groupbox_3 = QGroupBox()
+        self.scrollarea_3 = QScrollArea()
+        self.scrollarea_3.setWidget(self.groupbox_3)
+        self.scrollarea_3.setWidgetResizable(True)
+        layout_2.addWidget(self.scrollarea_3)
 
-        layoutBottom.addLayout(layout1)
-        layoutBottom.addLayout(layout2)
+        layout_bottom.addLayout(layout_1)
+        layout_bottom.addLayout(layout_2)
 
-        superLayout.addLayout(layoutHeader)
-        superLayout.addLayout(layoutTop)
-        superLayout.addLayout(layoutMiddle)
-        superLayout.addLayout(layoutBottom)
-        self.setLayout(superLayout)
+        layout_super.addLayout(layout_header)
+        layout_super.addLayout(layout_top)
+        layout_super.addLayout(layout_middle)
+        layout_super.addLayout(layout_bottom)
+        self.setLayout(layout_super)
 
-    def refresh_model(self):
+    def _refresh_model_(self):
         self.model.select()
-        for widget in self.groupBox.children()[1:]:
+        for widget in self.groupbox_1.children()[1:]:
             widget.setText
         self.query = QSqlQuery()
-        variables = {"Variable": [], "GoalType": [], "Goal": []}
+        _variables = {"Variable": [], "GoalType": [], "Goal": []}
         self.query.exec_("SELECT Variable, GoalType, Goal FROM variables")
         while self.query.next():
-            variables["Variable"].append(self.query.value(0))
-            variables["GoalType"].append(self.query.value(1))
-            variables["Goal"].append(self.query.value(2))
+            _variables["Variable"].append(self.query.value(0))
+            _variables["GoalType"].append(self.query.value(1))
+            _variables["Goal"].append(self.query.value(2))
 
-        updated_comments = []
-        for idx in range(1, len(variables["Variable"])):
-            comment = self.progress_comments(
-                variables["Variable"][idx],
-                variables["GoalType"][idx],
-                variables["Goal"][idx],
+        _updated_comments = []
+        for idx in range(1, len(_variables["Variable"])):
+            comment = self._progress_comments_(
+                _variables["Variable"][idx],
+                _variables["GoalType"][idx],
+                _variables["Goal"][idx],
             )
-            updated_comments.append(comment)
+            _updated_comments.append(comment)
 
-        for idx, widget in enumerate(self.groupBox.children()[1:]):
-            widget.setText(updated_comments[idx])
+        for idx, widget in enumerate(self.groupbox_1.children()[1:]):
+            widget.setText(_updated_comments[idx])
 
         self.query.exec_("SELECT Date FROM log;")
-        self.date_values = []
+        self._date_values_ = []
         while self.query.next():
-            self.date_values.append(self.query.value(0))
-        ticks = [
+            self._date_values_.append(self.query.value(0))
+        _ticks = [
             (tick[:-4] + tick[-2:], idx)
-            for idx, tick in enumerate(self.date_values[-100:])
+            for idx, tick in enumerate(self._date_values_[-100:])
             if tick[3:5] in ["01", "15"]
         ]
-        combination = list(map(list, zip(*ticks)))
-        label_list, tick_list = combination
+        _combination = list(map(list, zip(*_ticks)))
+        _label_list, _tick_list = _combination
 
         self.query.exec_("SELECT Me, Day FROM log")
-        me_values = []
-        day_values = []
+        _me_values = []
+        _day_values = []
         while self.query.next():
             try:
-                me_values.append(float(self.query.value(0)))
+                _me_values.append(float(self.query.value(0)))
             except:
-                me_values.append(np.nan)
+                _me_values.append(np.nan)
             try:
-                day_values.append(float(self.query.value(1)))
+                _day_values.append(float(self.query.value(1)))
             except:
-                day_values.append(np.nan)
+                _day_values.append(np.nan)
 
-        self.groupBox2.children()[1].p1[0].set_ydata(me_values)
-        self.groupBox2.children()[1].p2[0].set_ydata(day_values)
-        self.groupBox2.children()[1].p1[0].set_xdata(self.date_values)
-        self.groupBox2.children()[1].p2[0].set_xdata(self.date_values)
+        self.groupbox_2.children()[1].p1[0].set_ydata(_me_values)
+        self.groupbox_2.children()[1].p2[0].set_ydata(_day_values)
+        self.groupbox_2.children()[1].p1[0].set_xdata(self._date_values_)
+        self.groupbox_2.children()[1].p2[0].set_xdata(self._date_values_)
 
-        self.groupBox2.children()[1].draw()
-        columnNum = self.model.columnCount()
-        columnNames = [
+        self.groupbox_2.children()[1].draw()
+        _column_num = self.model.columnCount()
+        _column_names = [
             self.model.headerData(col, Qt.Horizontal, Qt.DisplayRole)
-            for col in range(columnNum)
+            for col in range(_column_num)
         ]
-        for idx, name in enumerate(columnNames[3:]):
+        for idx, name in enumerate(_column_names[3:]):
             mean = np.nan
-            Gtype = ""
-            target = ""
+            _goal_type = ""
+            _target = ""
             self.query.exec_(
                 f'SELECT Goal, GoalType FROM variables WHERE Variable = "{name}"'
             )
             while self.query.next():
                 try:
-                    target = float(self.query.value(0))
+                    _target = float(self.query.value(0))
                 except:
-                    target = self.query.value(0)
-                Gtype = self.query.value(1)
+                    _target = self.query.value(0)
+                _goal_type = self.query.value(1)
 
             self.query.exec_(f"SELECT {name} FROM log;")
-            self.y_values = []
+            self._y_values_ = []
             while self.query.next():
                 if self.query.value(0) == "":
-                    self.y_values.append(np.nan)
+                    self._y_values_.append(np.nan)
                 else:
-                    self.y_values.append(float(self.query.value(0)))
+                    self._y_values_.append(float(self.query.value(0)))
 
             self.figure = MplCanvas(self, width=4, height=4, dpi=100)
 
-            if Gtype == "Reference Goal":
-                target_values = []
-                self.query.exec_(f"SELECT {target} FROM log")
+            if _goal_type == "Reference Goal":
+                _target_values = []
+                self.query.exec_(f"SELECT {_target} FROM log")
                 while self.query.next():
                     try:
-                        target_values.append(float(self.query.value(0)))
+                        _target_values.append(float(self.query.value(0)))
                     except:
-                        target_values.append(np.nan)
-                rolling_mean = list(
-                    rolling_average(np.array(target_values) - np.array(self.y_values))
+                        _target_values.append(np.nan)
+                _rolling_mean = list(
+                    rolling_average(np.array(_target_values) - np.array(self._y_values_))
                 )
                 zero6 = [0, 0, 0, 0, 0, 0]
 
-                self.groupBox2.children()[idx + 2].p1[0].set_ydata(zero6 + rolling_mean)
-                self.groupBox2.children()[idx + 2].p1[0].set_xdata(self.date_values)
-                self.groupBox2.children()[idx + 2].draw()
+                self.groupbox_2.children()[idx + 2].p1[0].set_ydata(zero6 + _rolling_mean)
+                self.groupbox_2.children()[idx + 2].p1[0].set_xdata(self._date_values_)
+                self.groupbox_2.children()[idx + 2].draw()
             else:
-                self.groupBox2.children()[idx + 2].p1[0].set_ydata(self.y_values)
-                self.groupBox2.children()[idx + 2].p1[0].set_xdata(self.date_values)
-                self.groupBox2.children()[idx + 2].draw()
+                self.groupbox_2.children()[idx + 2].p1[0].set_ydata(self._y_values_)
+                self.groupbox_2.children()[idx + 2].p1[0].set_xdata(self._date_values_)
+                self.groupbox_2.children()[idx + 2].draw()
 
-    def add_column(self):
+    def _add_column_(self):
         if self.dbw is None:
             self.dbw = CreateDBWindow()
         self.dbw.show()
         self.dbw.w = Nothing()
 
-    def tracker_popup(self):
+    def _tracker_popup_(self):
         if self.pw is None:
             self.pw = Popup()
-        self.pw.label.setText(
+        self.pw.label_popup.setText(
             """PERSONAL TRACKER:
 This is where you can track your personal goals.
 To add a row hit the 'Add Row' button. Once the next date is
@@ -459,10 +458,10 @@ and inputting your values."""
         )
         self.pw.show()
 
-    def journal_popup(self):
+    def _journal_popup_(self):
         if self.pw is None:
             self.pw = Popup()
-        self.pw.label.setText(
+        self.pw.label_popup.setText(
             """JOURNAL:
 Journaling is a great way to keep track of your life.
 STAY ON TRACK provides a journal editor where you can make entries 
@@ -471,28 +470,28 @@ a paper notebook. If you choose to use your own notebook make sure you
 mark down the dates or consider transcribing your entries here.
             """
         )
-        self.pw.show()
+        self._pw_.show()
 
-    def find_entries(self):
-        month = str(self.dateedit.date().month())
-        if len(month) == 1:
-            month = "0" + month
-        day = str(self.dateedit.date().day())
-        if len(day) == 1:
-            day = "0" + day
-        year = str(self.dateedit.date().year())
+    def _find_entries_(self):
+        _month = str(self.dateedit_read.date().month())
+        if len(_month) == 1:
+            _month = "0" + _month
+        _day = str(self.dateedit_read.date().day())
+        if len(_day) == 1:
+            _day = "0" + _day
+        _year = str(self.dateedit_read.date().year())
         query = QSqlQuery()
         query.exec_(
             f'''
             SELECT * FROM journal 
-            WHERE Date = "{month}-{day}-{year}"'''
+            WHERE Date = "{_month}-{_day}-{_year}"'''
         )
-        self.entries = []
-        self.times = []
+        self._entries_ = []
+        self._times_ = []
         while query.next():
-            self.entries.append(query.value(1))
-            self.times.append(query.value(2))
-        for (entry, time) in zip(self.entries, self.times):
+            self._entries_.append(query.value(1))
+            self._times_.append(query.value(2))
+        for (entry, time) in zip(self._entries_, self._times_):
             entry_split = entry.split("\n")
             text = [
                 re.sub("(.{100})", "\\1-\n", text, 0, re.DOTALL) for text in entry_split
@@ -500,57 +499,57 @@ mark down the dates or consider transcribing your entries here.
             text = "\n".join(text)
             label = QLabel(f"{time} - {text}")
 
-            self.formLayout3.addRow(label)
-        self.groupBox3.setLayout(self.formLayout3)
-        self.scrollarea3.update()
+            self.layout_form3.addRow(label)
+        self.groupbox_3.setLayout(self.layout_form3)
+        self.scrollarea_3.update()
 
-    def add_row(self):
+    def _add_row_(self):
         self.query.exec_(
             """SELECT Date FROM log
             ORDER BY Date DESC
             LIMIT 1"""
         )
-        prev_date = ""
+        _prev_date = ""
         while self.query.next():
-            prev_date = self.query.value(0)
-        next_date = f"{prev_date[:3]}{int(prev_date[3:5]) +1}{prev_date[5:]}"
+            _prev_date = self.query.value(0)
+        _next_date = f"{_prev_date[:3]}{int(_prev_date[3:5]) +1}{_prev_date[5:]}"
         self.query.exec_(
             f"""INSERT INTO log (Date)
-            VALUES ("{next_date}")"""
+            VALUES ("{_next_date}")"""
         )
         self.model.select()
 
-    def submit_entry(self):
-        entry = self.journalBox.document()
-        month = str(self.dateeditWrite.date().month())
-        if len(month) == 1:
-            month = "0" + month
-        day = str(self.dateeditWrite.date().day())
-        if len(day) == 1:
-            day = "0" + day
-        year = str(self.dateeditWrite.date().year())
-        today_str = f"{month}-{day}-{year}"
-        time = f"{QDateTime.currentDateTime().time().hour()}:{QDateTime.currentDateTime().time().minute()}"
+    def _submit_entry_(self):
+        _entry = self.textbox_journal.document()
+        _month = str(self.dateedit_write.date().month())
+        if len(_month) == 1:
+            _month = "0" + _month
+        _day = str(self.dateedit_write.date().day())
+        if len(_day) == 1:
+            _day = "0" + _day
+        _year = str(self.dateedit_write.date().year())
+        _today_str = f"{_month}-{_day}-{_year}"
+        _time = f"{QDateTime.currentDateTime().time().hour()}:{QDateTime.currentDateTime().time().minute()}"
         query = QSqlQuery()
         query.exec_(
             f"""
             INSERT INTO journal (Date, Entry, TimeStamp)
-            VALUES("{today_str}", "{entry.toPlainText()}", "{time}")
+            VALUES("{_today_str}", "{_entry.toPlainText()}", "{_time}")
             """
         )
-        self.journalBox.clear()
+        self.textbox_journal.clear()
 
-    def progress_comments(self, name, gtype, target):
+    def _progress_comments_(self, name, gtype, target):
         self.query.exec_(f"SELECT {name} FROM log")
-        data_values = []
+        _data_values = []
         while self.query.next():
             try:
-                data_values.append(float(self.query.value(0)))
+                _data_values.append(float(self.query.value(0)))
             except ValueError:
-                data_values.append(np.nan)
+                _data_values.append(np.nan)
         if gtype == "Process Goal":
-            total_avg = np.nanmean(np.array(data_values))
-            last_seven = np.nanmean(np.array(data_values[-7:]))
+            total_avg = np.nanmean(np.array(_data_values))
+            last_seven = np.nanmean(np.array(_data_values[-7:]))
             total_diff = abs(float(target) - total_avg)
             seven_diff = abs(float(target) - last_seven)
 
@@ -576,8 +575,8 @@ than your overall average.<br>
 </font><font color="#f5f398">{rand_str}</font>"""
 
         elif gtype == "Outcome Goal":
-            last_seven = np.nanmean(np.array(data_values[-7:]))
-            prev_seven = np.nanmean(np.array(data_values[-14:-7]))
+            last_seven = np.nanmean(np.array(_data_values[-7:]))
+            prev_seven = np.nanmean(np.array(_data_values[-14:-7]))
             last_seven_diff = abs(float(target) - last_seven)
             prev_seven_diff = abs(float(target) - prev_seven)
 
@@ -604,13 +603,13 @@ then after your previous seven.<br>
 </font><font color="#f5f398">{rand_str}</font>"""
         elif gtype == "Reference Goal":
             self.query.exec_(f"SELECT {str(target)} FROM log")
-            target_values = []
+            _target_values = []
             while self.query.next():
                 if isinstance(self.query.value(0), float):
-                    target_values.append(self.query.value(0))
+                    _target_values.append(self.query.value(0))
                 else:
-                    target_values.append(np.nan)
-            diff = abs(np.array(target_values) - np.array(data_values))
+                    _target_values.append(np.nan)
+            diff = abs(np.array(_target_values) - np.array(_data_values))
             total_diff = np.nanmean(diff)
             seven_diff = np.nanmean(diff[-7:])
             if total_diff > seven_diff:
@@ -640,15 +639,15 @@ class SetupWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.dbw = None
-        layout = QVBoxLayout()
-        self.label = QLabel("Setup Window")
-        layout.addWidget(self.label)
-        self.button = QPushButton("Ready to Track Your Life?")
-        self.button.clicked.connect(self.get_started)
-        layout.addWidget(self.button)
-        self.setLayout(layout)
+        layout_main = QVBoxLayout()
+        self.label_setup = QLabel("Setup Window")
+        layout_main.addWidget(self.label_setup)
+        self.button_start = QPushButton("Ready to Track Your Life?")
+        self.button_start.clicked.connect(self._get_started_)
+        layout_main.addWidget(self.button)
+        self.setLayout(layout_main)
 
-    def get_started(self, checked):
+    def _get_started_(self, checked):
         if self.dbw is None:
             self.dbw = CreateDBWindow()
         self.dbw.show()
@@ -658,27 +657,27 @@ class SetupWindow(QWidget):
 class CreateDBWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.layout = QVBoxLayout()
-        self.infoLabelLayout = QHBoxLayout()
-        self.label = QLabel("Create DB Window")
-        self.infoButton = QPushButton("i", self)
-        self.infoButton.setFixedSize(QSize(16, 16))
-        self.infoButton.setStyleSheet("border-radius : 8; background-color: #404041")
-        self.infoButton.clicked.connect(self.setup_popup)
-        self.infoLabelLayout.addWidget(self.label)
-        self.infoLabelLayout.addWidget(self.infoButton)
-        self.layout.addLayout(self.infoLabelLayout)
+        self.layout_super = QVBoxLayout()
+        self.layout_infolabel = QHBoxLayout()
+        self.label_db = QLabel("Create DB Window")
+        self.button_info = QPushButton("i", self)
+        self.button_info.setFixedSize(QSize(16, 16))
+        self.button_info.setStyleSheet("border-radius : 8; background-color: #404041")
+        self.button_info.clicked.connect(self._setup_popup_)
+        self.layout_infolabel.addWidget(self.label_db)
+        self.layout_infolabel.addWidget(self.button_info)
+        self.layout_super.addLayout(self.layout_infolabel)
         self.w = None
-        self.layout.addWidget(self.label)
+        self.layout_super.addWidget(self.label_db)
         self.db = QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName("personal_data.db")
         self.pw = None
 
         if not self.db.open():
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Critical)
-            msg.setText("Error in Database Creation")
-            retval = msg.exec_()
+            messagebox = QMessageBox()
+            messagebox.setIcon(QMessageBox.Critical)
+            messagebox.setText("Error in Database Creation")
+            _retval = messagebox.exec_()
             return False
         query = QSqlQuery()
 
@@ -702,83 +701,83 @@ class CreateDBWindow(QWidget):
             (Date DATETIME, Entry TEXT, Timestamp TEXT)
             """
         )
-        self.button = None
-        self.doneButton = None
+        self.button_add = None
+        self.button_done = None
         self.combobox = QComboBox()
         self.combobox.addItems(
             ["Goal Type", "Process Goal", "Outcome Goal", "Reference Goal"]
         )
-        self.layout.addWidget(self.combobox)
+        self.layout_super.addWidget(self.combobox)
 
         self.checkComboBtn = QPushButton("Enter")
-        self.checkComboBtn.clicked.connect(self.generate_menu)
-        self.layout.addWidget(self.checkComboBtn)
+        self.checkComboBtn.clicked.connect(self._generate_menu_)
+        self.layout_super.addWidget(self.checkComboBtn)
 
-        self.setLayout(self.layout)
+        self.setLayout(self.layout_super)
 
-    def generate_menu(self):
+    def _generate_menu_(self):
         self.pw = None
-        self.target_strings = {
+        self._target_strings_ = {
             "Process Goal": "Target",
             "Outcome Goal": "Target",
             "Reference Goal": "Goal Category Name",
         }
-        if self.button != None:
-            self.layout.removeWidget(self.button)
-            self.layout.removeWidget(self.doneButton)
-            self.layout.removeWidget(self.goalText)
-            self.layout.removeWidget(self.targetText)
-            self.button = None
-            self.doneButton = None
-            self.goalText = None
-            self.targetText = None
+        if self.button_add != None:
+            self.layout_super.removeWidget(self.button_add)
+            self.layout_super.removeWidget(self.button_done)
+            self.layout_super.removeWidget(self.textbox_goal)
+            self.layout_super.removeWidget(self.textbox_target)
+            self.button_add = None
+            self.button_done = None
+            self.textbox_goal = None
+            self.textbox_target = None
         if self.combobox.currentText() == "Goal Type":
             if self.pw is None:
                 self.pw = Popup()
             self.pw.label.setText("Please select a Goal Type")
             self.pw.show()
         elif self.combobox.currentText() == "Process Goal":
-            self.goalText = QLineEdit("Goal Name")
-            self.targetText = QLineEdit(self.target_strings["Process Goal"])
-            self.layout.addWidget(self.goalText)
-            self.layout.addWidget(self.targetText)
+            self.textbox_goal = QLineEdit("Goal Name")
+            self.textbox_target = QLineEdit(self._target_strings_["Process Goal"])
+            self.layout_super.addWidget(self.textbox_goal)
+            self.layout_super.addWidget(self.textbox_target)
 
-            self.button = QPushButton("Add")
-            self.button.clicked.connect(self.add_column)
-            self.layout.addWidget(self.button)
+            self.button_add = QPushButton("Add")
+            self.button_add.clicked.connect(self._add_column_)
+            self.layout_super.addWidget(self.button_add)
 
-            self.doneButton = QPushButton("Done")
-            self.doneButton.clicked.connect(self.done)
-            self.layout.addWidget(self.doneButton)
+            self.button_done = QPushButton("Done")
+            self.button_done.clicked.connect(self._done_)
+            self.layout_super.addWidget(self.button_done)
         elif self.combobox.currentText() == "Outcome Goal":
-            self.goalText = QLineEdit("Goal Name")
-            self.targetText = QLineEdit(self.target_strings["Outcome Goal"])
-            self.layout.addWidget(self.goalText)
-            self.layout.addWidget(self.targetText)
+            self.textbox_goal = QLineEdit("Goal Name")
+            self.textbox_target = QLineEdit(self._target_strings_["Outcome Goal"])
+            self.layout_super.addWidget(self.textbox_goal)
+            self.layout_super.addWidget(self.textbox_target)
 
-            self.button = QPushButton("Add")
-            self.button.clicked.connect(self.add_column)
-            self.layout.addWidget(self.button)
+            self.button_add = QPushButton("Add")
+            self.button_add.clicked.connect(self._add_column_)
+            self.layout_super.addWidget(self.button_add)
 
-            self.doneButton = QPushButton("Done")
-            self.doneButton.clicked.connect(self.done)
-            self.layout.addWidget(self.doneButton)
+            self.button_done = QPushButton("Done")
+            self.button_done.clicked.connect(self._done_)
+            self.layout_super.addWidget(self.button_done)
         else:
-            self.goalText = QLineEdit("Goal Name")
-            self.targetText = QLineEdit(self.target_strings["Reference Goal"])
-            self.layout.addWidget(self.goalText)
-            self.layout.addWidget(self.targetText)
+            self.textbox_goal = QLineEdit("Goal Name")
+            self.textbox_target = QLineEdit(self._target_strings_["Reference Goal"])
+            self.layout_super.addWidget(self.textbox_goal)
+            self.layout_super.addWidget(self.textbox_target)
 
-            self.button = QPushButton("Add")
-            self.button.clicked.connect(self.add_column)
-            self.layout.addWidget(self.button)
+            self.button_add = QPushButton("Add")
+            self.button_add.clicked.connect(self._add_column_)
+            self.layout_super.addWidget(self.button_add)
 
-            self.doneButton = QPushButton("Done")
-            self.doneButton.clicked.connect(self.done)
-            self.layout.addWidget(self.doneButton)
-        self.setLayout(self.layout)
+            self.button_done = QPushButton("Done")
+            self.button_done.clicked.connect(self._done_)
+            self.layout_super.addWidget(self.button_done)
+        self.setLayout(self.layout_super)
 
-    def done(self):
+    def _done_(self):
         with open("preferences.py", "w") as f:
             f.write("setup = True")
         setup = True
@@ -787,10 +786,10 @@ class CreateDBWindow(QWidget):
         self.w.show()
         self.close()
 
-    def setup_popup(self):
+    def _setup_popup_(self):
         if self.pw is None:
             self.pw = Popup()
-        self.pw.label.setText(
+        self.pw.label_popup.setText(
             """SETUP:
 In order to track your life you need to add the categories you want
 to track. STAY ON TRACK supports three different types of goals.
@@ -813,129 +812,129 @@ be tasks completed and the "Goal Category Name" would be tasks
         )
         self.pw.show()
 
-    def add_column(self):
-        goalValue = self.goalText.text().replace(" ", "_")
-        comboboxValue = self.combobox.currentText()
-        targetValue = self.targetText.text().replace(" ", "_")
+    def _add_column_(self):
+        _goal_value = self.textbox_goal.text().replace(" ", "_")
+        _combobox_value = self.combobox.currentText()
+        _target_value = self.textbox_target.text().replace(" ", "_")
         query = QSqlQuery()
         query.exec_("SELECT ListOrder FROM variables;")
-        list_orders = []
+        _list_orders = []
         while query.next():
-            list_orders.append(query.value(0))
-        list_order = np.max(np.array(list_orders))
-        if goalValue in ["", "_", "Goal_Name"]:
+            _list_orders.append(query.value(0))
+        list_order = np.max(np.array(_list_orders))
+        if _goal_value in ["", "_", "Goal_Name"]:
             if self.pw is None:
                 self.pw = Popup()
             self.pw.label.setText("Please add Goal Name")
             self.pw.show()
-            self.goalText.setText("Goal Name")
-            self.targetText.setText(self.target_strings[comboboxValue])
-        elif targetValue in ["", "_", "Target", "Goal", "Goal_Category_Name"]:
+            self.textbox_goal.setText("Goal Name")
+            self.textbox_target.setText(self._target_strings_[_combobox_value])
+        elif _target_value in ["", "_", "Target", "Goal", "Goal_Category_Name"]:
             if self.pw is None:
                 self.pw = Popup()
             self.pw.label.setText(
-                f"Please add {self.target_strings[comboboxValue]} value"
+                f"Please add {self._target_strings_[_combobox_value]} value"
             )
             self.pw.show()
-            self.goalText.setText("Goal Name")
-        elif comboboxValue == "Reference Goal":
+            self.textbox_goal.setText("Goal Name")
+        elif _combobox_value == "Reference Goal":
             query = QSqlQuery()
             query.exec_(
                 f"""
                 ALTER TABLE log
-                ADD COLUMN {goalValue} REAL"""
+                ADD COLUMN {_goal_value} REAL"""
             )
             query.exec_(
                 f"""
                 ALTER TABLE log
-                ADD COLUMN {targetValue} REAL"""
+                ADD COLUMN {_target_value} REAL"""
             )
             query.exec_(
                 f"""
                 INSERT INTO variables (Variable, GoalType, Goal)
                 VALUES
-                ("{goalValue}", "{comboboxValue}", "{targetValue}", "{list_order}"),
-                ("{targetValue}", "Reference Category", "")
+                ("{_goal_value}", "{_combobox_value}", "{_target_value}", "{list_order}"),
+                ("{_target_value}", "Reference Category", "")
                 """
             )
 
             list_order += 1
-            self.layout.removeWidget(self.button)
-            self.layout.removeWidget(self.goalText)
-            self.layout.removeWidget(self.targetText)
-            self.button = None
-            self.goalText = None
-            self.targetText = None
+            self.layout_super.removeWidget(self.button_add)
+            self.layout_super.removeWidget(self.textbox_goal)
+            self.layout_super.removeWidget(self.textbox_target)
+            self.button_add = None
+            self.textbox_goal = None
+            self.textbox_target = None
         else:
             query = QSqlQuery()
             query.exec_(
                 f"""
                 ALTER TABLE log
-                ADD COLUMN {goalValue} REAL"""
+                ADD COLUMN {_goal_value} REAL"""
             )
             query.exec_(
                 f"""
                 INSERT INTO variables (Variable, GoalType, Goal)
                 VALUES
-                ("{goalValue}", "{comboboxValue}", "{targetValue}", "{list_order})
+                ("{_goal_value}", "{_combobox_value}", "{_target_value}", "{list_order})
                 """
             )
             list_order += 1
-            self.layout.removeWidget(self.button)
-            self.layout.removeWidget(self.goalText)
-            self.layout.removeWidget(self.targetText)
-            self.button = None
-            self.goalText = None
-            self.targetText = None
+            self.layout_super.removeWidget(self.button_add)
+            self.layout_super.removeWidget(self.textbox_goal)
+            self.layout_super.removeWidget(self.textbox_target)
+            self.button_add = None
+            self.textbox_goal = None
+            self.textbox_target = None
 
 
 class ReportWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.report_df = pd.DataFrame({})
-        self.journal = [
+        self._report_df_ = pd.DataFrame({})
+        self._journal_ = [
             None,
         ]
-        self.report_date_range = [
+        self._report_date_range_ = [
             None,
         ]
-        self.current_df = pd.DataFrame({})
-        self.current_date_range = [
+        self._current_df_ = pd.DataFrame({})
+        self._current_date_range_ = [
             None,
         ]
 
-    def load_layout(self):
-        super_layout = QVBoxLayout()
-        plot_layout = QHBoxLayout()
-        plot_header = QHBoxLayout()
-        data_label = QLabel(
-            f"Tracker From {self.report_date_range[0]} to {self.report_date_range[-1]} and Past 7 Days"
+    def _loat_layout_(self):
+        layout_super = QVBoxLayout()
+        layout_plot = QHBoxLayout()
+        layout_plotheader = QHBoxLayout()
+        label_data = QLabel(
+            f"Tracker From {self._report_date_range_[0]} to {self._report_date_range_[-1]} and Past 7 Days"
         )
-        data_label.setAlignment(Qt.AlignCenter)
-        data_label.setMaximumWidth(400)
-        line1 = QFrame()
-        line1.setStyleSheet("color: #ffa82e")
-        line1.setFrameShape(QFrame.HLine)
-        line2 = QFrame()
-        line2.setStyleSheet("color: #ffa82e")
-        line2.setFrameShape(QFrame.HLine)
-        plot_header.addWidget(line1)
-        plot_header.addWidget(data_label)
-        plot_header.addWidget(line2)
+        label_data.setAlignment(Qt.AlignCenter)
+        label_data.setMaximumWidth(400)
+        line_1 = QFrame()
+        line_1.setStyleSheet("color: #ffa82e")
+        line_1.setFrameShape(QFrame.HLine)
+        line_2 = QFrame()
+        line_2.setStyleSheet("color: #ffa82e")
+        line_2.setFrameShape(QFrame.HLine)
+        layout_plotheader.addWidget(line_1)
+        layout_plotheader.addWidget(label_data)
+        layout_plotheader.addWidget(line_2)
 
-        for col in self.report_df.columns[:]:
+        for col in self._report_df_.columns[:]:
             self.figure = MplCanvas(self, width=4, height=4, dpi=100)
             self.figure.p1 = self.figure.axes.plot(
-                np.arange(1, 8), self.report_df[col], c="#557ff2"
+                np.arange(1, 8), self._report_df_[col], c="#557ff2"
             )
             self.figure.p2 = self.figure.axes.plot(
-                np.arange(1, 8), self.current_df[col], c="#ffa82e"
+                np.arange(1, 8), self._current_df_[col], c="#ffa82e"
             )
             self.figure.axes.set_title(col, color="#ffffff", fontsize="small")
             self.figure.axes.legend(
                 [
-                    f"{self.report_date_range[0]} - {self.report_date_range[-1]}",
-                    f"{self.current_date_range[0]} - {self.current_date_range[-1]}",
+                    f"{self._report_date_range_[0]} - {self._report_date_range_[-1]}",
+                    f"{self._current_date_range_[0]} - {self._current_date_range_[-1]}",
                 ],
                 fontsize="small",
                 facecolor="#1d1e1e",
@@ -953,91 +952,91 @@ class ReportWindow(QWidget):
             self.figure.axes.spines["right"].set_color("#bfbfbf")
             self.figure.axes.tick_params(color="#bfbfbf", labelcolor="#ffffff")
 
-            plot_layout.addWidget(self.figure)
+            layout_plot.addWidget(self.figure)
 
         self.widget = QWidget()
-        self.widget.setLayout(plot_layout)
+        self.widget.setLayout(layout_plot)
         self.scroll_area1 = QScrollArea()
         self.scroll_area1.setWidget(self.widget)
         self.scroll_area1.setWidgetResizable(True)
 
-        journal_header = QHBoxLayout()
-        journal_label = QLabel(
-            f"Journal Entries From {self.report_date_range[0]} to {self.report_date_range[-1]}"
+        layout_journalheader = QHBoxLayout()
+        label_journal = QLabel(
+            f"Journal Entries From {self._report_date_range_[0]} to {self._report_date_range_[-1]}"
         )
-        journal_label.setAlignment(Qt.AlignCenter)
-        journal_label.setMaximumWidth(300)
-        line1 = QFrame()
-        line1.setStyleSheet("color: #ffa82e")
-        line1.setFrameShape(QFrame.HLine)
-        line2 = QFrame()
-        line2.setStyleSheet("color: #ffa82e")
-        line2.setFrameShape(QFrame.HLine)
-        journal_header.addWidget(line1)
-        journal_header.addWidget(journal_label)
-        journal_header.addWidget(line2)
+        label_journal.setAlignment(Qt.AlignCenter)
+        label_journal.setMaximumWidth(300)
+        line_1 = QFrame()
+        line_1.setStyleSheet("color: #ffa82e")
+        line_1.setFrameShape(QFrame.HLine)
+        line_2 = QFrame()
+        line_2.setStyleSheet("color: #ffa82e")
+        line_2.setFrameShape(QFrame.HLine)
+        layout_journalheader.addWidget(line_1)
+        layout_journalheader.addWidget(label_journal)
+        layout_journalheader.addWidget(line_2)
 
-        form_layout = QFormLayout()
-        for entry in self.journal:
-            entry_label = QLabel(entry)
-            form_layout.addRow(entry_label)
+        layout_form = QFormLayout()
+        for entry in self._journal_:
+            label_entry = QLabel(entry)
+            layout_form.addRow(label_entry)
 
         self.group_box2 = QGroupBox()
-        self.group_box2.setLayout(form_layout)
+        self.group_box2.setLayout(layout_form)
         self.scroll_area2 = QScrollArea()
         self.scroll_area2.setWidget(self.group_box2)
         self.scroll_area2.setWidgetResizable(True)
 
-        super_layout.addLayout(plot_header)
-        super_layout.addWidget(self.scroll_area1)
-        super_layout.addLayout(journal_header)
-        super_layout.addWidget(self.scroll_area2)
+        layout_super.addLayout(layout_plotheader)
+        layout_super.addWidget(self.scroll_area1)
+        layout_super.addLayout(layout_journalheader)
+        layout_super.addWidget(self.scroll_area2)
 
-        self.setLayout(super_layout)
+        self.setLayout(layout_super)
 
 
 class ReportPromptWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.report_dict = None
-        self.current_dict = None
-        self.windows = None
-        layout = QVBoxLayout()
+        self._report_dict_ = None
+        self._current_dict_ = None
+        self._windows_ = None
+        layout_super = QVBoxLayout()
         label_start = QLabel(
             """Hey! 
             You look like you went through something similar on these days"""
         )
-        layout.addWidget(label_start)
+        layout_super.addWidget(label_start)
 
         for idx, ((key_report, value_report), (key, value)) in enumerate(
             zip(report_dict.items(), current_dict.items())
         ):
-            self.report_date_range = np.arange(*key_report, dtype="datetime64[D]")
-            self.report_df = value_report[0]
-            self.current_date_range = np.arange(*key, dtype="datetime64[D]")
-            self.current_df = value[0]
-            self.journal = value_report[1]
+            self._report_date_range_ = np.arange(*key_report, dtype="datetime64[D]")
+            self._report_df_ = value_report[0]
+            self._current_date_range_ = np.arange(*key, dtype="datetime64[D]")
+            self._current_df_ = value[0]
+            self._journal_ = value_report[1]
             self.idx = idx
             button = QPushButton(
-                f"{self.report_date_range[0]} - {self.report_date_range[-1]}"
+                f"{self._report_date_range_[0]} - {self._report_date_range_[-1]}"
             )
-            button.clicked.connect(self.open_report)
-            layout.addWidget(button)
+            button.clicked.connect(self._open_report_)
+            layout_super.addWidget(button)
 
         label_end = QLabel("Click a date range to check it out!")
-        layout.addWidget(label_end)
-        self.setLayout(layout)
+        layout_super.addWidget(label_end)
+        self.setLayout(layout_super)
 
-    def open_report(self):
-        if self.windows[self.idx] is None:
-            self.windows[self.idx] = ReportWindow()
-        self.windows[self.idx].report_df = self.report_df
-        self.windows[self.idx].journal = self.journal
-        self.windows[self.idx].report_date_range = self.report_date_range
-        self.windows[self.idx].current_df = self.current_df
-        self.windows[self.idx].current_date_range = self.current_date_range
-        self.windows[self.idx].load_layout()
-        self.windows[self.idx].show()
+    def _open_report_(self):
+        if self._windows_[self.idx] is None:
+            self._windows_[self.idx] = ReportWindow()
+        self._windows_[self.idx].report_df = self._report_df_
+        self._windows_[self.idx].journal = self._journal_
+        self._windows_[self.idx].report_date_range = self._report_date_range_
+        self._windows_[self.idx].current_df = self._current_df_
+        self._windows_[self.idx].current_date_range = self._current_date_range_
+        self._windows_[self.idx]._loat_layout_()
+        self._windows_[self.idx].show()
         self.close()
 
 
@@ -1054,7 +1053,7 @@ class Popup(QWidget):
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout()
-        self.label = QLabel()
+        self.label_popup = QLabel()
         layout.addWidget(self.label)
         self.setLayout(layout)
 
@@ -1067,10 +1066,10 @@ def rolling_average(a, n=7):
 
 class Nothing:
     def __init__(self):
-        self.name = "Nothing"
+        self._name_ = "Nothing"
 
     def show(self):
-        self.name = "Nothing2"
+        self._name_ = "Nothing2"
 
 
 def load_cluster_data():
