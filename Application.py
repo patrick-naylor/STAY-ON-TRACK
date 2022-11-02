@@ -116,8 +116,6 @@ class MainWindow(QWidget):
 
         layout2.addWidget(scrollarea)
 
-
-
         self.layout3 = QVBoxLayout()
         self.plotProg = QLabel("Progress")
         self.plotProg.setAlignment(Qt.AlignCenter)
@@ -158,7 +156,9 @@ class MainWindow(QWidget):
                 day_values.append(np.nan)
 
         self.figure = MplCanvas(self, width=4, height=4, dpi=100)
-        self.figure.p1 = self.figure.axes.plot(self.date_values[-100:], me_values[-100:], c="#557ff2")
+        self.figure.p1 = self.figure.axes.plot(
+            self.date_values[-100:], me_values[-100:], c="#557ff2"
+        )
         self.figure.p2 = self.figure.axes.plot(
             self.date_values[-100:], day_values[-100:], c="#ffa82e"
         )
@@ -242,7 +242,7 @@ class MainWindow(QWidget):
                     [target, target],
                     c="#ffa82e",
                 )
-                print('target: ', target)
+                print("target: ", target)
                 self.figure.axes.legend(
                     [name, "Target Value"],
                     fontsize="small",
@@ -880,7 +880,7 @@ be tasks completed and the "Goal Category Name" would be tasks
                 ("{goalValue}", "{comboboxValue}", "{targetValue}", "{list_order})
                 """
             )
-            list_order +=1
+            list_order += 1
             self.layout.removeWidget(self.button)
             self.layout.removeWidget(self.goalText)
             self.layout.removeWidget(self.targetText)
@@ -888,28 +888,36 @@ be tasks completed and the "Goal Category Name" would be tasks
             self.goalText = None
             self.targetText = None
 
+
 class ReportWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.report_df = pd.DataFrame({})
-        self.journal = [None, ]
-        self.report_date_range = [None,]
+        self.journal = [
+            None,
+        ]
+        self.report_date_range = [
+            None,
+        ]
         self.current_df = pd.DataFrame({})
-        self.current_date_range = [None, ]
-
+        self.current_date_range = [
+            None,
+        ]
 
     def load_layout(self):
         super_layout = QVBoxLayout()
         plot_layout = QHBoxLayout()
         plot_header = QHBoxLayout()
-        data_label = QLabel(f'Tracker From {self.report_date_range[0]} to {self.report_date_range[-1]} and Past 7 Days')
+        data_label = QLabel(
+            f"Tracker From {self.report_date_range[0]} to {self.report_date_range[-1]} and Past 7 Days"
+        )
         data_label.setAlignment(Qt.AlignCenter)
         data_label.setMaximumWidth(400)
         line1 = QFrame()
-        line1.setStyleSheet('color: #ffa82e')
+        line1.setStyleSheet("color: #ffa82e")
         line1.setFrameShape(QFrame.HLine)
         line2 = QFrame()
-        line2.setStyleSheet('color: #ffa82e')
+        line2.setStyleSheet("color: #ffa82e")
         line2.setFrameShape(QFrame.HLine)
         plot_header.addWidget(line1)
         plot_header.addWidget(data_label)
@@ -917,17 +925,23 @@ class ReportWindow(QWidget):
 
         for col in self.report_df.columns[:]:
             self.figure = MplCanvas(self, width=4, height=4, dpi=100)
-            self.figure.p1 = self.figure.axes.plot(np.arange(1, 8), self.report_df[col], c='#557ff2')
-            self.figure.p2 = self.figure.axes.plot(np.arange(1, 8), self.current_df[col], c='#ffa82e')
-            self.figure.axes.set_title(col, color='#ffffff', fontsize='small')
+            self.figure.p1 = self.figure.axes.plot(
+                np.arange(1, 8), self.report_df[col], c="#557ff2"
+            )
+            self.figure.p2 = self.figure.axes.plot(
+                np.arange(1, 8), self.current_df[col], c="#ffa82e"
+            )
+            self.figure.axes.set_title(col, color="#ffffff", fontsize="small")
             self.figure.axes.legend(
-                [f'{self.report_date_range[0]} - {self.report_date_range[-1]}',
-                f'{self.current_date_range[0]} - {self.current_date_range[-1]}'],
-                fontsize='small',
-                facecolor='#1d1e1e',
-                labelcolor='#ffffff',
-                edgecolor='#bfbfbf',
-                )
+                [
+                    f"{self.report_date_range[0]} - {self.report_date_range[-1]}",
+                    f"{self.current_date_range[0]} - {self.current_date_range[-1]}",
+                ],
+                fontsize="small",
+                facecolor="#1d1e1e",
+                labelcolor="#ffffff",
+                edgecolor="#bfbfbf",
+            )
             self.figure.setMinimumWidth(300)
             self.figure.axes.tick_params(rotation=25, labelsize=8)
             self.figure.fig.tight_layout(rect=(0, 0.025, 1, 1))
@@ -948,14 +962,16 @@ class ReportWindow(QWidget):
         self.scroll_area1.setWidgetResizable(True)
 
         journal_header = QHBoxLayout()
-        journal_label = QLabel(f'Journal Entries From {self.report_date_range[0]} to {self.report_date_range[-1]}')
+        journal_label = QLabel(
+            f"Journal Entries From {self.report_date_range[0]} to {self.report_date_range[-1]}"
+        )
         journal_label.setAlignment(Qt.AlignCenter)
         journal_label.setMaximumWidth(300)
         line1 = QFrame()
-        line1.setStyleSheet('color: #ffa82e')
+        line1.setStyleSheet("color: #ffa82e")
         line1.setFrameShape(QFrame.HLine)
         line2 = QFrame()
-        line2.setStyleSheet('color: #ffa82e')
+        line2.setStyleSheet("color: #ffa82e")
         line2.setFrameShape(QFrame.HLine)
         journal_header.addWidget(line1)
         journal_header.addWidget(journal_label)
@@ -965,7 +981,7 @@ class ReportWindow(QWidget):
         for entry in self.journal:
             entry_label = QLabel(entry)
             form_layout.addRow(entry_label)
-    
+
         self.group_box2 = QGroupBox()
         self.group_box2.setLayout(form_layout)
         self.scroll_area2 = QScrollArea()
@@ -978,7 +994,8 @@ class ReportWindow(QWidget):
         super_layout.addWidget(self.scroll_area2)
 
         self.setLayout(super_layout)
-        
+
+
 class ReportPromptWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -986,23 +1003,28 @@ class ReportPromptWindow(QWidget):
         self.current_dict = None
         self.windows = None
         layout = QVBoxLayout()
-        label_start = QLabel('''Hey! 
-            You look like you went through something similar on these days''')
-        layout.addWidget(label_start)        
-        
-        for idx, ((key_report, value_report), (key, value)) in enumerate(zip(report_dict.items(), current_dict.items())):
-            self.report_date_range = np.arange(*key_report, dtype='datetime64[D]')
+        label_start = QLabel(
+            """Hey! 
+            You look like you went through something similar on these days"""
+        )
+        layout.addWidget(label_start)
+
+        for idx, ((key_report, value_report), (key, value)) in enumerate(
+            zip(report_dict.items(), current_dict.items())
+        ):
+            self.report_date_range = np.arange(*key_report, dtype="datetime64[D]")
             self.report_df = value_report[0]
-            self.current_date_range = np.arange(*key, dtype='datetime64[D]')
+            self.current_date_range = np.arange(*key, dtype="datetime64[D]")
             self.current_df = value[0]
             self.journal = value_report[1]
             self.idx = idx
-            button = QPushButton(f'{self.report_date_range[0]} - {self.report_date_range[-1]}')
+            button = QPushButton(
+                f"{self.report_date_range[0]} - {self.report_date_range[-1]}"
+            )
             button.clicked.connect(self.open_report)
             layout.addWidget(button)
-            
 
-        label_end = QLabel('Click a date range to check it out!')
+        label_end = QLabel("Click a date range to check it out!")
         layout.addWidget(label_end)
         self.setLayout(layout)
 
@@ -1128,36 +1150,45 @@ def load_cluster_data():
     new_cols = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []}
     for col in df.columns:
         for key, val in new_cols.items():
-            val.append(f'{col}_{key}day')
+            val.append(f"{col}_{key}day")
     dfs = []
     for key in new_cols.keys():
         dfs.append(df.shift(key))
     for (d, val) in zip(dfs, new_cols.values()):
         df[val] = d
     df = df.dropna(axis=0, how="any")
-    dates = df['Date']
-    df = df.drop(['Date', 'Date_1day', 'Date_2day', 'Date_3day', 'Date_4day', 'Date_5day', 'Date_6day', 'Date_7day'], axis=1)
+    dates = df["Date"]
+    df = df.drop(
+        [
+            "Date",
+            "Date_1day",
+            "Date_2day",
+            "Date_3day",
+            "Date_4day",
+            "Date_5day",
+            "Date_6day",
+            "Date_7day",
+        ],
+        axis=1,
+    )
     print(df.columns)
     return (df, np.array(dates))
 
+
 def generate_clusters(df, dates):
-    clusters = int(len(df.index)/3)
-    data_fit = np.array(df)[:-1,:]
-    data_pred = np.array(df)[-1:,:]
+    clusters = int(len(df.index) / 3)
+    data_fit = np.array(df)[:-1, :]
+    data_pred = np.array(df)[-1:, :]
     dates_fit = dates[:-1]
     date_pred = dates[-1:]
     clustering = cluster.KMeans(n_clusters=clusters)
     clustering.fit(data_fit)
     label_pred = clustering.predict(data_pred)
-    #print(label_pred)
+    # print(label_pred)
     labels = clustering.labels_
     dates_match = dates_fit[labels == label_pred[0]]
 
-    return(dates_match)
-
-
-
-
+    return dates_match
 
 
 random_generic_strings = [
@@ -1193,12 +1224,42 @@ if __name__ == "__main__":
         db.setDatabaseName("personal_data.db")
         db.close()
         db.open()
-        #print(load_cluster_data().columns)
+        # print(load_cluster_data().columns)
         df, dates = load_cluster_data()
         cluster_data, cluster_dates = generate_clusters(df, dates)
-        report_windows = [None, ]
-        current_dict = {('2021-10-01', '2021-10-08'): (pd.DataFrame({'var1': [0, 1.1, 5, 3.3, 4, 8, 6.5], 'var2': [0, 11, 22, 31, 45, 51, 66], 'var3': [0, 9, 5, 28, 42, 49, 62]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
-        report_dict = {('2020-10-01', '2020-10-08'): (pd.DataFrame({'var1': [0, 1, 2, 3, 4, 5, 6], 'var2': [0, 10, 20, 30, 40, 50, 60], 'var3': [0, 10, 20, 30, 40, 50, 60]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
+        report_windows = [
+            None,
+        ]
+        current_dict = {
+            ("2021-10-01", "2021-10-08"): (
+                pd.DataFrame(
+                    {
+                        "var1": [0, 1.1, 5, 3.3, 4, 8, 6.5],
+                        "var2": [0, 11, 22, 31, 45, 51, 66],
+                        "var3": [0, 9, 5, 28, 42, 49, 62],
+                    }
+                ),
+                [
+                    "10-01-2020 04:30 - life sucks kinda",
+                    "10-02-2020 13:46 - lifes a little better maybe",
+                ],
+            )
+        }
+        report_dict = {
+            ("2020-10-01", "2020-10-08"): (
+                pd.DataFrame(
+                    {
+                        "var1": [0, 1, 2, 3, 4, 5, 6],
+                        "var2": [0, 10, 20, 30, 40, 50, 60],
+                        "var3": [0, 10, 20, 30, 40, 50, 60],
+                    }
+                ),
+                [
+                    "10-01-2020 04:30 - life sucks kinda",
+                    "10-02-2020 13:46 - lifes a little better maybe",
+                ],
+            )
+        }
         rpw = ReportPromptWindow()
         rpw.report_dict = report_dict
         rpw.current_dict = current_dict
