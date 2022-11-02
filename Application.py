@@ -1121,7 +1121,6 @@ def load_cluster_data():
             drops.append(col)
         elif df[col].isna().sum() > one_thirds_date:
             drops.append(col)
-    dates = df['Date']
     df["Me"] = df["Me"] / df["Me"].abs().max()
     df["Day"] = df["Day"] / df["Day"].abs().max()
     print(drops)
@@ -1129,15 +1128,15 @@ def load_cluster_data():
     new_cols = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []}
     for col in df.columns:
         for key, val in new_cols.items():
-            if col != 'Date':
-                val.append(f'{col}_{key}day')
+            val.append(f'{col}_{key}day')
     dfs = []
     for key in new_cols.keys():
         dfs.append(df.shift(key))
     for (d, val) in zip(dfs, new_cols.values()):
         df[val] = d
     df = df.dropna(axis=0, how="any")
-    df = df.drop(['Date'], axis=1)
+    dates = df['Date']
+    df = df.drop(['Date', 'Date_1day', 'Date_2day', 'Date_3day', 'Date_4day', 'Date_5day', 'Date_6day', 'Date_7day'], axis=1)
     print(df.columns)
     return (df, np.array(dates))
 
@@ -1152,12 +1151,10 @@ def generate_clusters(df, dates):
     label_pred = clustering.predict(data_pred)
     #print(label_pred)
     labels = clustering.labels_
-    data_match = data_fit[labels == label_pred[0]]
-
     dates_match = dates_fit[labels == label_pred[0]]
-    print(labels)
-    #sil = metrics.silhouette_score(data_fit, labels)
-    #print(np.shape(data_fit), np.shape(data_pred))
+
+    return(dates_match)
+
 
 
 
@@ -1198,7 +1195,7 @@ if __name__ == "__main__":
         db.open()
         #print(load_cluster_data().columns)
         df, dates = load_cluster_data()
-        generate_clusters(df, dates)
+        cluster_data, cluster_dates = generate_clusters(df, dates)
         report_windows = [None, ]
         current_dict = {('2021-10-01', '2021-10-08'): (pd.DataFrame({'var1': [0, 1.1, 5, 3.3, 4, 8, 6.5], 'var2': [0, 11, 22, 31, 45, 51, 66], 'var3': [0, 9, 5, 28, 42, 49, 62]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
         report_dict = {('2020-10-01', '2020-10-08'): (pd.DataFrame({'var1': [0, 1, 2, 3, 4, 5, 6], 'var2': [0, 10, 20, 30, 40, 50, 60], 'var3': [0, 10, 20, 30, 40, 50, 60]}), ['10-01-2020 04:30 - life sucks kinda', '10-02-2020 13:46 - lifes a little better maybe'])}
