@@ -18,16 +18,16 @@ from sklearn import cluster
 from sklearn import metrics
 
 # TODO: Fix bug with empty pd.db file
-# TODO: Clean code
 # TODO: Comment code
 # TODO: Finalize reate clustering model
 # TODO: Work on naming/logo
 # TODO: Add correlation statements to comments block
 
-
+# Main window to view stats and journal. Also where users and log journal entries
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+        #Initialize initial layout
         self.pw = None
         self.dbw = None
         layout_super = QVBoxLayout()
@@ -45,6 +45,7 @@ class MainWindow(QWidget):
         line_2.setStyleSheet("color: #ffa82e")
         layout_header.addWidget(line_2)
 
+        #Generate window with sql table data and addrow/refresh/info buttons
         layout_top = QHBoxLayout()
         layout_1 = QVBoxLayout()
         layout_1top = QHBoxLayout()
@@ -63,6 +64,7 @@ class MainWindow(QWidget):
         layout_1top.addWidget(self.button_infomodel)
         layout_1.addLayout(layout_1top)
 
+        #Table reader
         self.model = QSqlTableModel()
         self.model.setTable("log")
         self.model.setEditStrategy(QSqlTableModel.OnFieldChange)
@@ -83,6 +85,8 @@ class MainWindow(QWidget):
         layout_addrow.addWidget(self.button_addrowcolumn)
         layout_1.addLayout(layout_addrow)
 
+        #Generate panel with text progress statements.
+        #Comments collected with self._progress_coments_
         layout_2 = QVBoxLayout()
         self.label_progress = QLabel("Progress Report")
         self.label_progress.setAlignment(Qt.AlignCenter)
@@ -108,6 +112,7 @@ class MainWindow(QWidget):
                 comment_label = QLabel(comment)
                 self.layout_form1.addRow(comment_label)
 
+        #Make comments scrollable
         self.groupbox_1.setMinimumWidth(360)
         self.groupbox_1.setLayout(self.layout_form1)
         scrollarea_1 = QScrollArea()
@@ -115,7 +120,9 @@ class MainWindow(QWidget):
         scrollarea_1.setWidgetResizable(True)
 
         layout_2.addWidget(scrollarea_1)
+        
 
+        #Generate window with progress plots
         self.layout_3 = QVBoxLayout()
         self.label_plotprog = QLabel("Progress")
         self.label_plotprog.setAlignment(Qt.AlignCenter)
@@ -155,6 +162,7 @@ class MainWindow(QWidget):
             except:
                 _day_values.append(np.nan)
 
+        #Plot Me and Day data. Same for all users
         self.figure = MplCanvas(self, width=4, height=4, dpi=100)
         self.figure.p1 = self.figure.axes.plot(
             self._date_values_[-100:], _me_values[-100:], c="#557ff2"
@@ -184,6 +192,7 @@ class MainWindow(QWidget):
 
         layout_form.addRow(self.figure)
 
+       	#Plot remaining variables
         for name in _column_names[3:]:
             _mean = np.nan
             _goal_type = ""
@@ -208,6 +217,7 @@ class MainWindow(QWidget):
 
             self.figure = MplCanvas(self, width=4, height=4, dpi=100)
 
+            #Plot variables that are reference goals
             if _goal_type == "Reference Goal":
                 _target_values = []
                 self.query.exec_(f"SELECT {_target} FROM log")
@@ -230,6 +240,7 @@ class MainWindow(QWidget):
                     fontsize="small",
                 )
 
+                #Plot variables that are not reference variables
             else:
                 self.figure.p1 = self.figure.axes.plot(
                     self._date_values_[-100:], self._y_values_[-100:], c="#557ff2"
@@ -268,6 +279,7 @@ class MainWindow(QWidget):
         self.groupbox_2.setMinimumWidth(360)
         self.groupbox_2.setLayout(layout_form)
 
+       	#Make plots scrollable
         scrollarea_2 = QScrollArea()
         scrollarea_2.setWidget(self.groupbox_2)
         scrollarea_2.setWidgetResizable(True)
@@ -278,6 +290,7 @@ class MainWindow(QWidget):
         layout_top.addLayout(layout_2)
         layout_top.addLayout(self.layout_3)
 
+        #Divider between top and bottom layers
         layout_middle = QHBoxLayout()
         line_1 = QFrame()
         line_1.setFrameShape(QFrame.HLine)
@@ -292,6 +305,7 @@ class MainWindow(QWidget):
         line_2.setStyleSheet("color: #ffa82e")
         layout_middle.addWidget(line_2)
 
+        #Generae panel to add entries to specific dates in journal
         layout_bottom = QHBoxLayout()
         layout_1 = QVBoxLayout()
         layout_journalheader = QHBoxLayout()
@@ -312,6 +326,7 @@ class MainWindow(QWidget):
         self.button_submit.clicked.connect(self._submit_entry_)
         layout_1.addWidget(self.button_submit)
 
+        #Generate page that reads journal entries from specific dates
         layout_2 = QVBoxLayout()
         self.dateedit_read = QDateEdit(calendarPopup=True)
         self.dateedit_read.setDateTime(QDateTime.currentDateTime())
@@ -335,8 +350,12 @@ class MainWindow(QWidget):
         layout_super.addLayout(layout_bottom)
         self.setLayout(layout_super)
 
+    #Refresh top panel of main window
     def _refresh_model_(self):
+    	#Refresh model
         self.model.select()
+
+        #Refresh progress statements
         for widget in self.groupbox_1.children()[1:]:
             widget.setText
         self.query = QSqlQuery()
@@ -359,6 +378,7 @@ class MainWindow(QWidget):
         for idx, widget in enumerate(self.groupbox_1.children()[1:]):
             widget.setText(_updated_comments[idx])
 
+        #Refresh plots
         self.query.exec_("SELECT Date FROM log;")
         self._date_values_ = []
         while self.query.next():
@@ -440,12 +460,14 @@ class MainWindow(QWidget):
                 self.groupbox_2.children()[idx + 2].p1[0].set_xdata(self._date_values_)
                 self.groupbox_2.children()[idx + 2].draw()
 
+    #Add new column/variable to sql table
     def _add_column_(self):
         if self.dbw is None:
             self.dbw = CreateDBWindow()
         self.dbw.show()
         self.dbw.w = Nothing()
 
+    #Load sql inormation button window
     def _tracker_popup_(self):
         if self.pw is None:
             self.pw = Popup()
@@ -458,6 +480,7 @@ and inputting your values."""
         )
         self.pw.show()
 
+    #Load journal information button window
     def _journal_popup_(self):
         if self.pw is None:
             self.pw = Popup()
@@ -472,6 +495,7 @@ mark down the dates or consider transcribing your entries here.
         )
         self._pw_.show()
 
+    #Find journal entries from specific date
     def _find_entries_(self):
         _month = str(self.dateedit_read.date().month())
         if len(_month) == 1:
@@ -503,6 +527,7 @@ mark down the dates or consider transcribing your entries here.
         self.groupbox_3.setLayout(self.layout_form3)
         self.scrollarea_3.update()
 
+    #Add new row to sql tabel with date as next in sequence
     def _add_row_(self):
         self.query.exec_(
             """SELECT Date FROM log
@@ -519,6 +544,7 @@ mark down the dates or consider transcribing your entries here.
         )
         self.model.select()
 
+    #Submit journal entry to journal table of sql database
     def _submit_entry_(self):
         _entry = self.textbox_journal.document()
         _month = str(self.dateedit_write.date().month())
@@ -539,6 +565,7 @@ mark down the dates or consider transcribing your entries here.
         )
         self.textbox_journal.clear()
 
+    #Generate progress comments based on target values and load random encouraging strings
     def _progress_comments_(self, name, gtype, target):
         self.query.exec_(f"SELECT {name} FROM log")
         _data_values = []
@@ -634,7 +661,7 @@ closer to your </font><font color="#557ff2">{target}</font><font color="white"> 
         else:
             return ""
 
-
+#Initial window on boot
 class SetupWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -647,15 +674,17 @@ class SetupWindow(QWidget):
         layout_main.addWidget(self.button)
         self.setLayout(layout_main)
 
+    #Open window to create db and 'get started'
     def _get_started_(self, checked):
         if self.dbw is None:
             self.dbw = CreateDBWindow()
         self.dbw.show()
         self.close()
 
-
+#Window where users generate a database with the data they want to track
 class CreateDBWindow(QWidget):
     def __init__(self):
+    	#Generate initial page with combobox and information buttons
         super().__init__()
         self.layout_super = QVBoxLayout()
         self.layout_infolabel = QHBoxLayout()
@@ -681,6 +710,7 @@ class CreateDBWindow(QWidget):
             return False
         query = QSqlQuery()
 
+        #Create tables
         query.exec_(
             """
             CREATE TABLE IF NOT EXISTS log
@@ -715,6 +745,9 @@ class CreateDBWindow(QWidget):
 
         self.setLayout(self.layout_super)
 
+    #Generate selection screen based on goal type selection
+    #Users add everything they want to track
+    #Reference goals add an extra column to table with the data that it is being compared to
     def _generate_menu_(self):
         self.pw = None
         self._target_strings_ = {
@@ -777,6 +810,7 @@ class CreateDBWindow(QWidget):
             self.layout_super.addWidget(self.button_done)
         self.setLayout(self.layout_super)
 
+    #Finish setup
     def _done_(self):
         with open("preferences.py", "w") as f:
             f.write("setup = True")
@@ -786,6 +820,7 @@ class CreateDBWindow(QWidget):
         self.w.show()
         self.close()
 
+    #Load informational text on goal types
     def _setup_popup_(self):
         if self.pw is None:
             self.pw = Popup()
@@ -812,6 +847,9 @@ be tasks completed and the "Goal Category Name" would be tasks
         )
         self.pw.show()
 
+    #Add columns with selected constraints
+    #Adds variable metadata to variables table
+    #Adds columns to log table
     def _add_column_(self):
         _goal_value = self.textbox_goal.text().replace(" ", "_")
         _combobox_value = self.combobox.currentText()
@@ -888,7 +926,11 @@ be tasks completed and the "Goal Category Name" would be tasks
             self.textbox_target = None
 
 
+#Window with reports of similar days based on clustering model
+#Top is plots with current and selected dates data
+#Bottom is journal entries from selected dates
 class ReportWindow(QWidget):
+	#Initialize window
     def __init__(self):
         super().__init__()
         self._report_df_ = pd.DataFrame({})
@@ -903,7 +945,8 @@ class ReportWindow(QWidget):
             None,
         ]
 
-    def _loat_layout_(self):
+    #Load data bassed by ReportPromptWindow
+    def _load_layout_(self):
         layout_super = QVBoxLayout()
         layout_plot = QHBoxLayout()
         layout_plotheader = QHBoxLayout()
@@ -995,6 +1038,8 @@ class ReportWindow(QWidget):
         self.setLayout(layout_super)
 
 
+#Show users which date ranges are similar to past 7 days
+#Prompt to open reports which will open an individual ReportWindow
 class ReportPromptWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -1035,11 +1080,12 @@ class ReportPromptWindow(QWidget):
         self._windows_[self.idx].report_date_range = self._report_date_range_
         self._windows_[self.idx].current_df = self._current_df_
         self._windows_[self.idx].current_date_range = self._current_date_range_
-        self._windows_[self.idx]._loat_layout_()
+        self._windows_[self.idx]._load_layout_()
         self._windows_[self.idx].show()
         self.close()
 
 
+#Plot widget
 class MplCanvas(FigureCanvasQTAgg):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
@@ -1049,6 +1095,7 @@ class MplCanvas(FigureCanvasQTAgg):
         super(MplCanvas, self).__init__(self.fig)
 
 
+#Popup window
 class Popup(QWidget):
     def __init__(self):
         super().__init__()
@@ -1063,7 +1110,7 @@ def rolling_average(a, n=7):
     ret[n:] = ret[n:] - ret[:-n]
     return ret[n - 1 :] / n
 
-
+#Nothing class
 class Nothing:
     def __init__(self):
         self._name_ = "Nothing"
@@ -1071,7 +1118,7 @@ class Nothing:
     def show(self):
         self._name_ = "Nothing2"
 
-
+#Format user data into a model friendly format and remove variables without 66% of total entries
 def load_cluster_data():
     query = QSqlQuery()
     query.exec_(
@@ -1175,6 +1222,7 @@ def load_cluster_data():
     return df, np.array(dates), df_noformat
 
 
+#Cluster data into len/3 clusters and select the dates which are in the same group as past 7 days
 def generate_clusters(df, dates):
     clusters = int(len(df.index) / 3)
     data_fit = np.array(df)[:-1, :]
@@ -1190,6 +1238,7 @@ def generate_clusters(df, dates):
 
     return dates_match
 
+#Get data dicts from dates to be passed into report window
 def get_dicts(dates, df):
 	df['Date_pd'] = pd.to_datetime(df['Date'])
 	dates_pd = pd.to_datetime(dates)
@@ -1215,7 +1264,7 @@ def get_dicts(dates, df):
 	return current_dict, report_dict
 
 	    
-
+#Strings to be selected randomly for progress report
 random_generic_strings = [
     "Great Work!",
     "Effort is Progress",
@@ -1237,8 +1286,8 @@ random_disimprove_strings = [
     "Don't focus on you're past failures. Focus on you're future successes",
 ]
 
-random_reached_goal_string = []
 
+#Run
 if __name__ == "__main__":
     app = QApplication([])
     app.setStyle("Fusion")
