@@ -1143,7 +1143,6 @@ def load_cluster_data():
         types.append(query.value(1))
         targets.append(query.value(2))
     var_dict = {"var": variables, "gtype": types, "target": targets}
-    # print(var_dict)
     var_df = pd.DataFrame.from_dict(var_dict)
 
     for var in variables:
@@ -1161,7 +1160,6 @@ def load_cluster_data():
 
     df = pd.DataFrame.from_dict(data_dict)
     df_noformat = df
-    # print(df)
     for col in df.columns:
         data = var_df[var_df["var"] == col]
         gtype = np.array(data["gtype"])[0]
@@ -1192,7 +1190,6 @@ def load_cluster_data():
             drops.append(col)
     df["Me"] = df["Me"] / df["Me"].abs().max()
     df["Day"] = df["Day"] / df["Day"].abs().max()
-    #print(drops)
     df = df.drop(drops, axis=1)
     new_cols = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []}
     for col in df.columns:
@@ -1218,7 +1215,6 @@ def load_cluster_data():
         ],
         axis=1,
     )
-    #print(df.columns)
     return df, np.array(dates), df_noformat
 
 
@@ -1232,7 +1228,6 @@ def generate_clusters(df, dates):
     clustering = cluster.KMeans(n_clusters=clusters)
     clustering.fit(data_fit)
     label_pred = clustering.predict(data_pred)
-    # print(label_pred)
     labels = clustering.labels_
     dates_match = dates_fit[labels == label_pred[0]]
 
@@ -1298,19 +1293,23 @@ if __name__ == "__main__":
         db.setDatabaseName("personal_data.db")
         db.close()
         db.open()
-        # print(load_cluster_data().columns)
-        df, dates, df_noformat = load_cluster_data()
-        cluster_dates = generate_clusters(df, dates)
-        report_windows = [
-            None,
-        ]
-        current_dict, report_dict = get_dicts(cluster_dates, df_noformat)
-        #print(current_dict, report_dict)
-        rpw = ReportPromptWindow()
-        rpw.report_dict = report_dict
-        rpw.current_dict = current_dict
-        rpw.windows = report_windows
-        rpw.show()
+        query = QSqlQuery()
+        query.exec_("SELECT Date FROM log")
+        count = 0
+        while query.next():
+        	count += 1
+        if(count>=75)
+        	df, dates, df_noformat = load_cluster_data()
+        	cluster_dates = generate_clusters(df, dates)
+        	report_windows = [
+            	None,
+        	]
+        	current_dict, report_dict = get_dicts(cluster_dates, df_noformat)
+        	rpw = ReportPromptWindow()
+        	rpw.report_dict = report_dict
+        	rpw.current_dict = current_dict
+        	rpw.windows = report_windows
+        	rpw.show()
 
     sw = None
     if not setup:
