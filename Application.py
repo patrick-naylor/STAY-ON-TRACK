@@ -1114,6 +1114,7 @@ def load_cluster_data():
                 data_dict[key].append(query.value(idx))
 
     df = pd.DataFrame.from_dict(data_dict)
+    df_noformat = df
     # print(df)
     for col in df.columns:
         data = var_df[var_df["var"] == col]
@@ -1172,7 +1173,7 @@ def load_cluster_data():
         axis=1,
     )
     print(df.columns)
-    return (df, np.array(dates))
+    return df, np.array(dates), df_noformat
 
 
 def generate_clusters(df, dates):
@@ -1190,6 +1191,30 @@ def generate_clusters(df, dates):
 
     return dates_match
 
+def get_dicts(dates, df):
+
+	report_dict = {}
+	for d in dates:
+		date_range = [np.array(df[df['Date'] <= d].tail(7)['Date'])[0], d]
+		date_range[0] = f'{date_range[0][-4:]}-{date_range[0][:5]}'
+		date_range[1] = f'{date_range[1][-4:]}-{date_range[1][:5]}'
+		query = QSqlQuery()
+		query.exec_(f'SELECT * FROM journal WHERE Date = "{d}"')
+		journal_entry = []
+		while query.next():
+			journal_entry.append(f'{query.value(0)} {query.value(2)} - {query.value(1)}')
+		report_dict[(date_range[0], date_range[1])] = (df[df['Date'] <= d].tail(7), journal_entry)
+
+	current_dict = {}
+	current_date = np.array(df['Date'])[-1]
+	date_range = [np.array(df.tail(7)['Date'])[0], current_date]
+	date_range[0] = f'{date_range[0][-4:]}-{date_range[0][:5]}'
+	date_range[1] = f'{date_range[1][-4:]}-{date_range[1][:5]}'
+	current_dict = {(date_range[0], date_range[1]): (df.tail(7), ['',])}
+
+	return current_dict, report_dict
+
+	    
 
 random_generic_strings = [
     "Great Work!",
@@ -1225,41 +1250,13 @@ if __name__ == "__main__":
         db.close()
         db.open()
         # print(load_cluster_data().columns)
-        df, dates = load_cluster_data()
-        cluster_data, cluster_dates = generate_clusters(df, dates)
+        df, dates, df_noformat = load_cluster_data()
+        cluster_dates = generate_clusters(df, dates)
         report_windows = [
             None,
         ]
-        current_dict = {
-            ("2021-10-01", "2021-10-08"): (
-                pd.DataFrame(
-                    {
-                        "var1": [0, 1.1, 5, 3.3, 4, 8, 6.5],
-                        "var2": [0, 11, 22, 31, 45, 51, 66],
-                        "var3": [0, 9, 5, 28, 42, 49, 62],
-                    }
-                ),
-                [
-                    "10-01-2020 04:30 - life sucks kinda",
-                    "10-02-2020 13:46 - lifes a little better maybe",
-                ],
-            )
-        }
-        report_dict = {
-            ("2020-10-01", "2020-10-08"): (
-                pd.DataFrame(
-                    {
-                        "var1": [0, 1, 2, 3, 4, 5, 6],
-                        "var2": [0, 10, 20, 30, 40, 50, 60],
-                        "var3": [0, 10, 20, 30, 40, 50, 60],
-                    }
-                ),
-                [
-                    "10-01-2020 04:30 - life sucks kinda",
-                    "10-02-2020 13:46 - lifes a little better maybe",
-                ],
-            )
-        }
+        current_dict, report_dict = get_dicts(cluster_dates, df_noformat)
+
         rpw = ReportPromptWindow()
         rpw.report_dict = report_dict
         rpw.current_dict = current_dict
