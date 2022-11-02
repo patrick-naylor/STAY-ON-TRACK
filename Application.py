@@ -242,7 +242,7 @@ class MainWindow(QWidget):
                     [target, target],
                     c="#ffa82e",
                 )
-                print("target: ", target)
+                #print("target: ", target)
                 self.figure.axes.legend(
                     [name, "Target Value"],
                     fontsize="small",
@@ -1146,7 +1146,7 @@ def load_cluster_data():
             drops.append(col)
     df["Me"] = df["Me"] / df["Me"].abs().max()
     df["Day"] = df["Day"] / df["Day"].abs().max()
-    print(drops)
+    #print(drops)
     df = df.drop(drops, axis=1)
     new_cols = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []}
     for col in df.columns:
@@ -1172,7 +1172,7 @@ def load_cluster_data():
         ],
         axis=1,
     )
-    print(df.columns)
+    #print(df.columns)
     return df, np.array(dates), df_noformat
 
 
@@ -1192,10 +1192,11 @@ def generate_clusters(df, dates):
     return dates_match
 
 def get_dicts(dates, df):
-
+	df['Date_pd'] = pd.to_datetime(df['Date'])
+	dates_pd = pd.to_datetime(dates)
 	report_dict = {}
-	for d in dates:
-		date_range = [np.array(df[df['Date'] <= d].tail(7)['Date'])[0], d]
+	for d, dpd in zip(dates, dates_pd):
+		date_range = [np.array(df[df['Date_pd'] <= dpd].tail(7)['Date'])[0], d]
 		date_range[0] = f'{date_range[0][-4:]}-{date_range[0][:5]}'
 		date_range[1] = f'{date_range[1][-4:]}-{date_range[1][:5]}'
 		query = QSqlQuery()
@@ -1203,7 +1204,7 @@ def get_dicts(dates, df):
 		journal_entry = []
 		while query.next():
 			journal_entry.append(f'{query.value(0)} {query.value(2)} - {query.value(1)}')
-		report_dict[(date_range[0], date_range[1])] = (df[df['Date'] <= d].tail(7), journal_entry)
+		report_dict[(date_range[0], date_range[1])] = (df[df['Date_pd'] <= dpd].tail(7).drop(['Date_pd'], axis=1), journal_entry)
 
 	current_dict = {}
 	current_date = np.array(df['Date'])[-1]
@@ -1256,7 +1257,7 @@ if __name__ == "__main__":
             None,
         ]
         current_dict, report_dict = get_dicts(cluster_dates, df_noformat)
-
+        #print(current_dict, report_dict)
         rpw = ReportPromptWindow()
         rpw.report_dict = report_dict
         rpw.current_dict = current_dict
