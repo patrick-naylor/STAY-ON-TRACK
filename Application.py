@@ -17,8 +17,6 @@ import pandas as pd
 from sklearn import cluster
 from sklearn import metrics
 
-# TODO: Fix bug with empty pd.db file
-# TODO: Comment code
 # TODO: Finalize reate clustering model
 # TODO: Work on naming/logo
 # TODO: Add correlation statements to comments block
@@ -192,7 +190,7 @@ class MainWindow(QWidget):
 
         layout_form.addRow(self.figure)
 
-       	#Plot remaining variables
+           #Plot remaining variables
         for name in _column_names[3:]:
             _mean = np.nan
             _goal_type = ""
@@ -279,7 +277,7 @@ class MainWindow(QWidget):
         self.groupbox_2.setMinimumWidth(360)
         self.groupbox_2.setLayout(layout_form)
 
-       	#Make plots scrollable
+           #Make plots scrollable
         scrollarea_2 = QScrollArea()
         scrollarea_2.setWidget(self.groupbox_2)
         scrollarea_2.setWidgetResizable(True)
@@ -352,7 +350,7 @@ class MainWindow(QWidget):
 
     #Refresh top panel of main window
     def _refresh_model_(self):
-    	#Refresh model
+        #Refresh model
         self.model.select()
 
         #Refresh progress statements
@@ -567,55 +565,72 @@ mark down the dates or consider transcribing your entries here.
 
     #Generate progress comments based on target values and load random encouraging strings
     def _progress_comments_(self, name, gtype, target):
-        self.query.exec_(f"SELECT {name} FROM log")
+        self.query.exec_(f"SELECT {name}, Me FROM log")
         _data_values = []
+        _me_values = []
+        _correlation_statements = {-.75: "strong negative correlation", -.5: "moderate negative correlation", -.25: "weak negative correlation", 0: "no correlation", .25: "weak positive correlation", .5: "moderate postive correlation", .75: "strong positive correlation"}
         while self.query.next():
             try:
                 _data_values.append(float(self.query.value(0)))
             except ValueError:
                 _data_values.append(np.nan)
+            try:
+                _me_values.append(float(self.query.value(1)))
+            except:
+                _me_values.append(np.nan)
+        _data_mask = np.ma.masked_invalid(np.array(_data_values))
+        _me_mask = np.ma.masked_invalid(np.array(_me_values))
+        _mask = (~_data_mask.mask & ~_me_mask.mask)
+        _correlation = np.corrcoef(_data_mask[_mask], _me_mask[_mask])[0,1]
+
         if gtype == "Process Goal":
             total_avg = np.nanmean(np.array(_data_values))
             last_seven = np.nanmean(np.array(_data_values[-7:]))
-            total_diff = abs(float(target) - total_avg)
-            seven_diff = abs(float(target) - last_seven)
-
-            if total_diff > seven_diff:
+            _total_diff = abs(float(target) - total_avg)
+            _seven_diff = abs(float(target) - last_seven)
+            _data_mask = np.ma.masked_invalid(np.array(_data_values))
+            _me_mask = np.ma.masked_invalid(np.array(_me_values))
+            _mask = (~_data_mask.mask & ~_me_mask.mask)
+            _correlation = np.corrcoef(_data_mask[_mask], _me_mask[_mask])[0,1]
+            _correlation_statement = _correlation_statements.get(_correlation) or _correlation_statements[min(_correlation_statements.keys(), key = lambda key: abs(key-_correlation))]
+            if _total_diff > _seven_diff:
                 closer_or_further = "closer to"
-                percent_num = (total_diff - seven_diff) / seven_diff
+                percent_num = (_total_diff - _seven_diff) / _seven_diff
                 percent = f'</font><font color="#ffa82e">{str(round(percent_num * 100, 2))}% </font><font color="white">'
                 rand_str = random.choice(random_improve_strings)
-            elif total_diff < seven_diff:
+            elif _total_diff < _seven_diff:
                 closer_or_further = "further from"
-                percent_num = (seven_diff - total_diff) / total_diff
+                percent_num = (_seven_diff - _total_diff) / _total_diff
                 percent = f'</font><font color="#ffa82e">{str(round(percent_num * 100, 2))}% </font><font color="white">'
                 rand_str = random.choice(random_disimprove_strings)
             else:
                 rand_str = random.choice(random_generic_strings)
                 return f"""<font color="white">over your last seven entries your average </font><font color="#557ff2">{name}<br>
 has been equal to your overall average<br>
-</font><font color="#f5f398">{rand_str}</font>"""
+</font><font color="#f5f398">{rand_str}<br>
+{name} has a {_correlation_statement} with Me</font>"""
 
             return f"""<font color="white">Over your last seven entries your average </font><font color="#557ff2">{name}</font><font color="white"><br>
 have been {percent}{closer_or_further} your target of </font><font color="#557ff2">{str(target)}</font><font color="white"><br>
 than your overall average.<br>
-</font><font color="#f5f398">{rand_str}</font>"""
+</font><font color="#f5f398">{rand_str}<br>
+{name} has a {_correlation_statement} with Me</font>"""
 
         elif gtype == "Outcome Goal":
             last_seven = np.nanmean(np.array(_data_values[-7:]))
             prev_seven = np.nanmean(np.array(_data_values[-14:-7]))
-            last_seven_diff = abs(float(target) - last_seven)
-            prev_seven_diff = abs(float(target) - prev_seven)
+            last__seven_diff = abs(float(target) - last_seven)
+            prev__seven_diff = abs(float(target) - prev_seven)
 
-            if last_seven_diff > prev_seven_diff:
+            if last__seven_diff > prev__seven_diff:
                 closer_or_further = "further from"
-                percent_num = round(last_seven_diff - prev_seven_diff, 2)
+                percent_num = round(last__seven_diff - prev__seven_diff, 2)
                 percent = f'</font><font color="#ffa82e">{str(percent_num)} </font><font color="white">'
                 rand_str = random.choice(random_disimprove_strings)
 
-            elif last_seven_diff < prev_seven_diff:
+            elif last__seven_diff < prev__seven_diff:
                 closer_or_further = "closer to"
-                percent_num = round(prev_seven_diff - last_seven_diff, 2)
+                percent_num = round(prev__seven_diff - last__seven_diff, 2)
                 percent = f'</font><font color="#ffa82e">{str(percent_num)} </font><font color="white">'
                 rand_str = random.choice(random_improve_strings)
             else:
@@ -637,27 +652,34 @@ then after your previous seven.<br>
                 else:
                     _target_values.append(np.nan)
             diff = abs(np.array(_target_values) - np.array(_data_values))
-            total_diff = np.nanmean(diff)
-            seven_diff = np.nanmean(diff[-7:])
-            if total_diff > seven_diff:
+            _total_diff = np.nanmean(diff)
+            _data_mask = np.ma.masked_invalid(np.array(_total_diff))
+            _me_mask = np.ma.masked_invalid(np.array(_me_values))
+            _mask = (~_data_mask.mask & ~_me_mask.mask)
+            _correlation = np.corrcoef(_data_mask[_mask], _me_mask[_mask])[0,1]
+            _correlation_statement = _correlation_statements.get(_correlation) or _correlation_statements[min(_correlation_statements.keys(), key = lambda key: abs(key-_correlation))]
+            _seven_diff = np.nanmean(diff[-7:])
+            if _total_diff > _seven_diff:
                 closer_or_further = "closer to"
-                percent_num = (total_diff - seven_diff) / seven_diff
+                percent_num = (_total_diff - _seven_diff) / _seven_diff
                 percent = f'</font><font color="#ffa82e">{str(round(percent_num * 100, 2))}% </font><font color="white">'
                 rand_str = random.choice(random_improve_strings)
-            elif total_diff < seven_diff:
+            elif _total_diff < _seven_diff:
                 closer_or_further = "further from"
-                percent_num = (seven_diff - total_diff) / total_diff
+                percent_num = (_seven_diff - _total_diff) / _total_diff
                 percent = f'</font><font color="#ffa82e">{str(round(percent_num * 100, 2))}% </font><font color="white">'
                 rand_str = random.choice(random_disimprove_strings)
             else:
                 rand_str = random.choice(random_generic_strings)
                 return f"""<font color="white">Over your last seven entries your </font><font color="#557ff2">{name}</font><font color="white"> is no<br> 
 closer to your </font><font color="#557ff2">{target}</font><font color="white"> than your overall average<br>
-</font><font color="#f5f398">{rand_str}</font>"""
+</font><font color="#f5f398">{rand_str}<br>
+{name} has a {_correlation_statement} with Me</font>"""
 
             return f"""<font color="white">Over your last seven entries your </font><font color="#557ff2">{name}</font><font color="white"> is<br> 
 {percent} {closer_or_further} </font><font color="#557ff2">{target}</font><font color="white"> than your overall average<br>
-</font><font color="#f5f398">{rand_str}</font>"""
+</font><font color="#f5f398">{rand_str}<br>
+{name} has a {_correlation_statement} with Me</font>"""
         else:
             return ""
 
@@ -684,7 +706,7 @@ class SetupWindow(QWidget):
 #Window where users generate a database with the data they want to track
 class CreateDBWindow(QWidget):
     def __init__(self):
-    	#Generate initial page with combobox and information buttons
+        #Generate initial page with combobox and information buttons
         super().__init__()
         self.layout_super = QVBoxLayout()
         self.layout_infolabel = QHBoxLayout()
@@ -930,7 +952,7 @@ be tasks completed and the "Goal Category Name" would be tasks
 #Top is plots with current and selected dates data
 #Bottom is journal entries from selected dates
 class ReportWindow(QWidget):
-	#Initialize window
+    #Initialize window
     def __init__(self):
         super().__init__()
         self._report_df_ = pd.DataFrame({})
@@ -1235,30 +1257,30 @@ def generate_clusters(df, dates):
 
 #Get data dicts from dates to be passed into report window
 def get_dicts(dates, df):
-	df['Date_pd'] = pd.to_datetime(df['Date'])
-	dates_pd = pd.to_datetime(dates)
-	report_dict = {}
-	for d, dpd in zip(dates, dates_pd):
-		date_range = [np.array(df[df['Date_pd'] <= dpd].tail(7)['Date'])[0], d]
-		date_range[0] = f'{date_range[0][-4:]}-{date_range[0][:5]}'
-		date_range[1] = f'{date_range[1][-4:]}-{date_range[1][:5]}'
-		query = QSqlQuery()
-		query.exec_(f'SELECT * FROM journal WHERE Date = "{d}"')
-		journal_entry = []
-		while query.next():
-			journal_entry.append(f'{query.value(0)} {query.value(2)} - {query.value(1)}')
-		report_dict[(date_range[0], date_range[1])] = (df[df['Date_pd'] <= dpd].tail(7).drop(['Date_pd'], axis=1), journal_entry)
+    df['Date_pd'] = pd.to_datetime(df['Date'])
+    dates_pd = pd.to_datetime(dates)
+    report_dict = {}
+    for d, dpd in zip(dates, dates_pd):
+        date_range = [np.array(df[df['Date_pd'] <= dpd].tail(7)['Date'])[0], d]
+        date_range[0] = f'{date_range[0][-4:]}-{date_range[0][:5]}'
+        date_range[1] = f'{date_range[1][-4:]}-{date_range[1][:5]}'
+        query = QSqlQuery()
+        query.exec_(f'SELECT * FROM journal WHERE Date = "{d}"')
+        journal_entry = []
+        while query.next():
+            journal_entry.append(f'{query.value(0)} {query.value(2)} - {query.value(1)}')
+        report_dict[(date_range[0], date_range[1])] = (df[df['Date_pd'] <= dpd].tail(7).drop(['Date_pd'], axis=1), journal_entry)
 
-	current_dict = {}
-	current_date = np.array(df['Date'])[-1]
-	date_range = [np.array(df.tail(7)['Date'])[0], current_date]
-	date_range[0] = f'{date_range[0][-4:]}-{date_range[0][:5]}'
-	date_range[1] = f'{date_range[1][-4:]}-{date_range[1][:5]}'
-	current_dict = {(date_range[0], date_range[1]): (df.tail(7), ['',])}
+    current_dict = {}
+    current_date = np.array(df['Date'])[-1]
+    date_range = [np.array(df.tail(7)['Date'])[0], current_date]
+    date_range[0] = f'{date_range[0][-4:]}-{date_range[0][:5]}'
+    date_range[1] = f'{date_range[1][-4:]}-{date_range[1][:5]}'
+    current_dict = {(date_range[0], date_range[1]): (df.tail(7), ['',])}
 
-	return current_dict, report_dict
+    return current_dict, report_dict
 
-	    
+        
 #Strings to be selected randomly for progress report
 random_generic_strings = [
     "Great Work!",
@@ -1297,19 +1319,19 @@ if __name__ == "__main__":
         query.exec_("SELECT Date FROM log")
         count = 0
         while query.next():
-        	count += 1
-        if(count>=75)
-        	df, dates, df_noformat = load_cluster_data()
-        	cluster_dates = generate_clusters(df, dates)
-        	report_windows = [
-            	None,
-        	]
-        	current_dict, report_dict = get_dicts(cluster_dates, df_noformat)
-        	rpw = ReportPromptWindow()
-        	rpw.report_dict = report_dict
-        	rpw.current_dict = current_dict
-        	rpw.windows = report_windows
-        	rpw.show()
+            count += 1
+        if(count>=75):
+            df, dates, df_noformat = load_cluster_data()
+            cluster_dates = generate_clusters(df, dates)
+            report_windows = [
+                None,
+            ]
+            current_dict, report_dict = get_dicts(cluster_dates, df_noformat)
+            rpw = ReportPromptWindow()
+            rpw.report_dict = report_dict
+            rpw.current_dict = current_dict
+            rpw.windows = report_windows
+            rpw.show()
 
     sw = None
     if not setup:
