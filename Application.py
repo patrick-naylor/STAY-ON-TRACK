@@ -19,7 +19,6 @@ from sklearn import metrics
 
 # TODO: Finalize reate clustering model
 # TODO: Work on naming/logo
-# TODO: Add correlation statements to comments block
 
 # Main window to view stats and journal. Also where users and log journal entries
 class MainWindow(QWidget):
@@ -347,7 +346,7 @@ class MainWindow(QWidget):
         layout_super.addLayout(layout_middle)
         layout_super.addLayout(layout_bottom)
         self.setLayout(layout_super)
-
+        self.setWindowTitle('STAY ON TRACK: Tracker')
     #Refresh top panel of main window
     def _refresh_model_(self):
         #Refresh model
@@ -702,6 +701,7 @@ class SetupWindow(QWidget):
             self.dbw = CreateDBWindow()
         self.dbw.show()
         self.close()
+        self.setWindowTitle('STAY ON TRACK: Get Started')
 
 #Window where users generate a database with the data they want to track
 class CreateDBWindow(QWidget):
@@ -831,6 +831,7 @@ class CreateDBWindow(QWidget):
             self.button_done.clicked.connect(self._done_)
             self.layout_super.addWidget(self.button_done)
         self.setLayout(self.layout_super)
+        self.setWindowTitle('STAY ON TRACK: Setup')
 
     #Finish setup
     def _done_(self):
@@ -1058,6 +1059,7 @@ class ReportWindow(QWidget):
         layout_super.addWidget(self.scroll_area2)
 
         self.setLayout(layout_super)
+        self.setWindowTitle(f'STAY ON TRACK: {self._report_date_range_[0]} - {self._report_date_range_[1]}')
 
 
 #Show users which date ranges are similar to past 7 days
@@ -1093,6 +1095,7 @@ class ReportPromptWindow(QWidget):
         label_end = QLabel("Click a date range to check it out!")
         layout_super.addWidget(label_end)
         self.setLayout(layout_super)
+        self.setWindowTitle('STAY ON TRACK: Report')
 
     def _open_report_(self):
         if self._windows_[self.idx] is None:
@@ -1125,6 +1128,7 @@ class Popup(QWidget):
         self.label_popup = QLabel()
         layout.addWidget(self.label)
         self.setLayout(layout)
+        self.setWindowTitle('STAY ON TRACK')
 
 
 def rolling_average(a, n=7):
