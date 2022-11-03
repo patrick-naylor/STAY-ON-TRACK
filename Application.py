@@ -607,14 +607,14 @@ mark down the dates or consider transcribing your entries here.
                 rand_str = random.choice(random_generic_strings)
                 return f"""<font color="white">over your last seven entries your average </font><font color="#557ff2">{name}<br>
 has been equal to your overall average<br>
-</font><font color="#f5f398">{rand_str}<br>
-{name} has a {_correlation_statement} with Me</font>"""
+{name} has a {_correlation_statement} with Me<br>
+</font><font color="#f5f398">{rand_str}</font>"""
 
             return f"""<font color="white">Over your last seven entries your average </font><font color="#557ff2">{name}</font><font color="white"><br>
 have been {percent}{closer_or_further} your target of </font><font color="#557ff2">{str(target)}</font><font color="white"><br>
 than your overall average.<br>
-</font><font color="#f5f398">{rand_str}<br>
-{name} has a {_correlation_statement} with Me</font>"""
+{name} has a {_correlation_statement} with Me<br>
+</font><font color="#f5f398">{rand_str}</font>"""
 
         elif gtype == "Outcome Goal":
             last_seven = np.nanmean(np.array(_data_values[-7:]))
@@ -673,13 +673,13 @@ then after your previous seven.<br>
                 rand_str = random.choice(random_generic_strings)
                 return f"""<font color="white">Over your last seven entries your </font><font color="#557ff2">{name}</font><font color="white"> is no<br> 
 closer to your </font><font color="#557ff2">{target}</font><font color="white"> than your overall average<br>
-</font><font color="#f5f398">{rand_str}<br>
-{name} has a {_correlation_statement} with Me</font>"""
+{name} has a {_correlation_statement} with Me<br>
+</font><font color="#f5f398">{rand_str}</font>"""
 
             return f"""<font color="white">Over your last seven entries your </font><font color="#557ff2">{name}</font><font color="white"> is<br> 
 {percent} {closer_or_further} </font><font color="#557ff2">{target}</font><font color="white"> than your overall average<br>
-</font><font color="#f5f398">{rand_str}<br>
-{name} has a {_correlation_statement} with Me</font>"""
+{name} has a {_correlation_statement} with Me<br>
+</font><font color="#f5f398">{rand_str}</font>"""
         else:
             return ""
 
