@@ -18,7 +18,6 @@ from sklearn import cluster
 from sklearn import metrics
 from functools import partial
 
-# TODO: Finalize reate clustering model
 # TODO: Work on naming/logo
 
 # Main window to view stats and journal. Also where users and log journal entries
@@ -348,6 +347,7 @@ class MainWindow(QWidget):
         layout_super.addLayout(layout_bottom)
         self.setLayout(layout_super)
         self.setWindowTitle('STAY ON TRACK: Tracker')
+        
     #Refresh top panel of main window
     def _refresh_model_(self):
         #Refresh model
@@ -1253,10 +1253,11 @@ def generate_clusters(df, dates):
     date_pred = dates[-1:]
     clustering = cluster.KMeans(n_clusters=clusters)
     clustering.fit(data_fit)
+    sil = metrics.silhouette_score(data_fit, clustering.labels_)
     label_pred = clustering.predict(data_pred)
     labels = clustering.labels_
     dates_match = dates_fit[labels == label_pred[0]]
-
+    print(sil)
     return dates_match
 
 #Get data dicts from dates to be passed into report window
