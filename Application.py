@@ -4,6 +4,9 @@ from PyQt5.QtSql import *
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QDateTime
 from PyQt5.QtCore import QSize
+import sys, os
+path = str(os.getcwdb())[2:-1] + '/'
+sys.path.append(path)
 from preferences import setup
 from datetime import date
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -18,9 +21,7 @@ from sklearn import cluster
 from sklearn import metrics
 from functools import partial
 
-# TODO: Work on naming/logo
 
-# Main window to view stats and journal. Also where users and log journal entries
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -347,7 +348,7 @@ class MainWindow(QWidget):
         layout_super.addLayout(layout_bottom)
         self.setLayout(layout_super)
         self.setWindowTitle('STAY ON TRACK: Tracker')
-        
+
     #Refresh top panel of main window
     def _refresh_model_(self):
         #Refresh model
@@ -722,7 +723,7 @@ class CreateDBWindow(QWidget):
         self.w = None
         self.layout_super.addWidget(self.label_db)
         self.db = QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName("personal_data.db")
+        self.db.setDatabaseName(f'{path}personal_data.db')
         self.pw = None
 
         if not self.db.open():
@@ -1257,7 +1258,6 @@ def generate_clusters(df, dates):
     label_pred = clustering.predict(data_pred)
     labels = clustering.labels_
     dates_match = dates_fit[labels == label_pred[0]]
-    print(sil)
     return dates_match
 
 #Get data dicts from dates to be passed into report window
@@ -1317,7 +1317,7 @@ if __name__ == "__main__":
     rpw = None
     if (setup) and (rpw is None):
         db = QSqlDatabase.addDatabase("QSQLITE")
-        db.setDatabaseName("personal_data.db")
+        db.setDatabaseName(f'{path}personal_data.db')
         db.close()
         db.open()
         query = QSqlQuery()
