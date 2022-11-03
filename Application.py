@@ -16,6 +16,7 @@ import re
 import pandas as pd
 from sklearn import cluster
 from sklearn import metrics
+from functools import partial
 
 # TODO: Finalize reate clustering model
 # TODO: Work on naming/logo
@@ -989,36 +990,37 @@ class ReportWindow(QWidget):
         layout_plotheader.addWidget(line_2)
 
         for col in self._report_df_.columns[:]:
-            self.figure = MplCanvas(self, width=4, height=4, dpi=100)
-            self.figure.p1 = self.figure.axes.plot(
-                np.arange(1, 8), self._report_df_[col], c="#557ff2"
-            )
-            self.figure.p2 = self.figure.axes.plot(
-                np.arange(1, 8), self._current_df_[col], c="#ffa82e"
-            )
-            self.figure.axes.set_title(col, color="#ffffff", fontsize="small")
-            self.figure.axes.legend(
-                [
-                    f"{self._report_date_range_[0]} - {self._report_date_range_[-1]}",
-                    f"{self._current_date_range_[0]} - {self._current_date_range_[-1]}",
-                ],
-                fontsize="small",
-                facecolor="#1d1e1e",
-                labelcolor="#ffffff",
-                edgecolor="#bfbfbf",
-            )
-            self.figure.setMinimumWidth(300)
-            self.figure.axes.tick_params(rotation=25, labelsize=8)
-            self.figure.fig.tight_layout(rect=(0, 0.025, 1, 1))
-            self.figure.axes.set_facecolor("#1d1e1e")
-            self.figure.fig.patch.set_facecolor("#1d1e1e")
-            self.figure.axes.spines["bottom"].set_color("#bfbfbf")
-            self.figure.axes.spines["top"].set_color("#bfbfbf")
-            self.figure.axes.spines["left"].set_color("#bfbfbf")
-            self.figure.axes.spines["right"].set_color("#bfbfbf")
-            self.figure.axes.tick_params(color="#bfbfbf", labelcolor="#ffffff")
+            if col != 'Date':
+                self.figure = MplCanvas(self, width=4, height=4, dpi=100)
+                self.figure.p1 = self.figure.axes.plot(
+                    np.arange(1, 8), self._report_df_[col], c="#557ff2"
+                )
+                self.figure.p2 = self.figure.axes.plot(
+                    np.arange(1, 8), self._current_df_[col], c="#ffa82e"
+                )
+                self.figure.axes.set_title(col, color="#ffffff", fontsize="small")
+                self.figure.axes.legend(
+                    [
+                        f"{self._report_date_range_[0]} - {self._report_date_range_[-1]}",
+                        f"{self._current_date_range_[0]} - {self._current_date_range_[-1]}",
+                    ],
+                    fontsize="small",
+                    facecolor="#1d1e1e",
+                    labelcolor="#ffffff",
+                    edgecolor="#bfbfbf",
+                )
+                self.figure.setMinimumWidth(300)
+                self.figure.axes.tick_params(rotation=25, labelsize=8)
+                self.figure.fig.tight_layout(rect=(0, 0.025, 1, 1))
+                self.figure.axes.set_facecolor("#1d1e1e")
+                self.figure.fig.patch.set_facecolor("#1d1e1e")
+                self.figure.axes.spines["bottom"].set_color("#bfbfbf")
+                self.figure.axes.spines["top"].set_color("#bfbfbf")
+                self.figure.axes.spines["left"].set_color("#bfbfbf")
+                self.figure.axes.spines["right"].set_color("#bfbfbf")
+                self.figure.axes.tick_params(color="#bfbfbf", labelcolor="#ffffff")
 
-            layout_plot.addWidget(self.figure)
+                layout_plot.addWidget(self.figure)
 
         self.widget = QWidget()
         self.widget.setLayout(layout_plot)
@@ -1059,7 +1061,7 @@ class ReportWindow(QWidget):
         layout_super.addWidget(self.scroll_area2)
 
         self.setLayout(layout_super)
-        self.setWindowTitle(f'STAY ON TRACK: {self._report_date_range_[0]} - {self._report_date_range_[1]}')
+        self.setWindowTitle(f'STAY ON TRACK: {self._report_date_range_[0]} - {self._report_date_range_[-1]}')
 
 
 #Show users which date ranges are similar to past 7 days
@@ -1069,7 +1071,8 @@ class ReportPromptWindow(QWidget):
         super().__init__()
         self._report_dict_ = None
         self._current_dict_ = None
-        self._windows_ = None
+        self._windows_ = [None for key in report_dict.keys()]
+        
         layout_super = QVBoxLayout()
         label_start = QLabel(
             """Hey! 
@@ -1077,19 +1080,14 @@ class ReportPromptWindow(QWidget):
         )
         layout_super.addWidget(label_start)
 
-        for idx, ((key_report, value_report), (key, value)) in enumerate(
-            zip(report_dict.items(), current_dict.items())
+        for idx, (key_report, value_report) in enumerate(report_dict.items()
         ):
             self._report_date_range_ = np.arange(*key_report, dtype="datetime64[D]")
-            self._report_df_ = value_report[0]
-            self._current_date_range_ = np.arange(*key, dtype="datetime64[D]")
-            self._current_df_ = value[0]
-            self._journal_ = value_report[1]
-            self.idx = idx
+          
             button = QPushButton(
                 f"{self._report_date_range_[0]} - {self._report_date_range_[-1]}"
             )
-            button.clicked.connect(self._open_report_)
+            button.clicked.connect(partial(self._open_report_, idx, value_report[0], value_report[1], self._report_date_range_, list(current_dict.values())[0][0], np.arange(list(current_dict.keys())[0][0], list(current_dict.keys())[0][1], dtype="datetime64[D]")))
             layout_super.addWidget(button)
 
         label_end = QLabel("Click a date range to check it out!")
@@ -1097,17 +1095,19 @@ class ReportPromptWindow(QWidget):
         self.setLayout(layout_super)
         self.setWindowTitle('STAY ON TRACK: Report')
 
-    def _open_report_(self):
-        if self._windows_[self.idx] is None:
-            self._windows_[self.idx] = ReportWindow()
-        self._windows_[self.idx].report_df = self._report_df_
-        self._windows_[self.idx].journal = self._journal_
-        self._windows_[self.idx].report_date_range = self._report_date_range_
-        self._windows_[self.idx].current_df = self._current_df_
-        self._windows_[self.idx].current_date_range = self._current_date_range_
-        self._windows_[self.idx]._load_layout_()
-        self._windows_[self.idx].show()
-        self.close()
+    def _open_report_(self, idx, _report_df, _journal, _report_date_range, _current_df, _current_date_range):
+
+        if self._windows_[idx] is None:
+            self._windows_[idx] = ReportWindow()
+        self._windows_[idx]._report_df_ = _report_df
+        self._windows_[idx]._journal_ = _journal
+        self._windows_[idx]._report_date_range_ = _report_date_range
+        print(_report_date_range)
+        self._windows_[idx]._current_df_ = _current_df
+        self._windows_[idx]._current_date_range_ = _current_date_range
+        self._windows_[idx]._load_layout_()
+        self._windows_[idx].show()
+
 
 
 #Plot widget
