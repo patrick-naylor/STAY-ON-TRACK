@@ -8,6 +8,9 @@ import math
 from scipy.optimize import curve_fit
 import random
 import sqlite3
+import os
+path_util = str(os.getcwdb())[2:-1] + '/util/'
+path_data = str(os.getcwdb())[2:-1] + '/data/'
 
 
 def main():
@@ -69,7 +72,7 @@ def main():
         }
     )
     print(scalars)
-    conn = sqlite3.connect("sample_data.db")
+    conn = sqlite3.connect(f"{path_data}sample_data.db")
     df.to_sql("log", conn, if_exists="replace", index=False)
 
     df_var = pd.DataFrame(
