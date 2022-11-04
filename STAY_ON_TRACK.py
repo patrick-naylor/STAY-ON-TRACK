@@ -1055,7 +1055,7 @@ class ReportWindow(QWidget):
 
         layout_journalheader = QHBoxLayout()
         label_journal = QLabel(
-            f"Journal Entries From {self._report_date_range_[0]} to {self._report_date_range_[-1]}"
+            f'Journal Entries From "{self._report_date_range_[0]}" to "{self._report_date_range_[-1]}"'
         )
         label_journal.setAlignment(Qt.AlignCenter)
         label_journal.setMaximumWidth(300)
@@ -1270,7 +1270,7 @@ def load_cluster_data():
 
 #Cluster data into len/3 clusters and select the dates which are in the same group as past 7 days
 def generate_clusters(df, dates):
-    clusters = int(len(df.index) / 3)
+    clusters = int(len(df.index) / 2)
     data_fit = np.array(df)[:-1, :]
     data_pred = np.array(df)[-1:, :]
     dates_fit = dates[:-1]
@@ -1292,11 +1292,13 @@ def get_dicts(dates, df):
         date_range = [np.array(df[df['Date_pd'] <= dpd].tail(7)['Date'])[0], d]
         date_range[0] = f'{date_range[0][-4:]}-{date_range[0][:5]}'
         date_range[1] = f'{date_range[1][-4:]}-{date_range[1][:5]}'
-        query = QSqlQuery()
-        query.exec_(f'SELECT * FROM journal WHERE Date = "{d}"')
         journal_entry = []
-        while query.next():
-            journal_entry.append(f'{query.value(0)} {query.value(2)} - {query.value(1)}')
+        for dd in date_range:
+            date_format = f'{dd[-5:]}-{dd[:4]}'
+            query = QSqlQuery()
+            query.exec_(f'SELECT * FROM journal WHERE Date = "{date_format}"')
+            while query.next():
+                journal_entry.append(f'{query.value(0)} {query.value(2)} - {query.value(1)}')
         report_dict[(date_range[0], date_range[1])] = (df[df['Date_pd'] <= dpd].tail(7).drop(['Date_pd'], axis=1), journal_entry)
 
     current_dict = {}
