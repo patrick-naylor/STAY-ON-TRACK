@@ -381,7 +381,7 @@ class MainWindow(QWidget):
                 _variables["Goal"][idx],
             )
             _updated_comments.append(comment)
-
+        _updated_comments.remove('')
         for idx, widget in enumerate(self.groupbox_1.children()[1:]):
             widget.setText(_updated_comments[idx])
 
@@ -619,7 +619,7 @@ mark down the dates or consider transcribing your entries here.
                 rand_str = random.choice(random_disimprove_strings)
             else:
                 rand_str = random.choice(random_generic_strings)
-                return f"""<font color="white">over your last seven entries your average </font><font color="#557ff2">{name}<br>
+                return f"""<font color="white">over your last seven entries your average </font><font color="#557ff2">{name}</font><font color="white"><br>
 has been equal to your overall average<br>
 {name} has a {_correlation_statement} with Me<br>
 </font><font color="#f5f398">{rand_str}</font>"""
@@ -658,6 +658,7 @@ any progress towards your goal of </font><font color="#557ff2">{target}</font><f
 then after your previous seven.<br>
 </font><font color="#f5f398">{rand_str}</font>"""
         elif gtype == "Reference Goal":
+
             self.query.exec_(f"SELECT {str(target)} FROM log")
             _target_values = []
             while self.query.next():
@@ -690,6 +691,7 @@ then after your previous seven.<br>
 closer to your </font><font color="#557ff2">{target}</font><font color="white"> than your overall average<br>
 {name} has a {_correlation_statement} with Me<br>
 </font><font color="#f5f398">{rand_str}</font>"""
+            
 
             return f"""<font color="white">Over your last seven entries your </font><font color="#557ff2">{name}</font><font color="white"> is<br> 
 {percent} {closer_or_further} </font><font color="#557ff2">{target}</font><font color="white"> than your overall average<br>
@@ -1312,7 +1314,7 @@ random_generic_strings = [
     "Great Work!",
     "Effort is Progress",
     "You're doing this! Push yourself!",
-    '"Believe you can and you\'re halfway there." - Theodore Roosevelt',
+    '"Believe you can and you\'re halfway there." <b>- Theodore Roosevelt',
     "",
 ]
 
