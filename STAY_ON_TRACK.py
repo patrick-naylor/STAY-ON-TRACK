@@ -250,9 +250,12 @@ class MainWindow(QWidget):
                 )
                 self.figure.axes.set_title(name, color="#ffffff", fontsize="small")
 
+            index = -100
+            if len(list(self._date_values_)) < 100:
+                index = 0
             if isinstance(_target, float):
                 self.figure.p2 = self.figure.axes.plot(
-                    [self._date_values_[-100], self._date_values_[-1]],
+                    [self._date_values_[index], self._date_values_[-1]],
                     [_target, _target],
                     c="#ffa82e",
                 )
@@ -371,7 +374,7 @@ class MainWindow(QWidget):
             _variables["Goal"].append(self.query.value(2))
 
         _updated_comments = []
-        for idx in range(1, len(_variables["Variable"])):
+        for idx in range(0, len(_variables["Variable"])):
             comment = self._progress_comments_(
                 _variables["Variable"][idx],
                 _variables["GoalType"][idx],
@@ -657,18 +660,19 @@ then after your previous seven.<br>
             self.query.exec_(f"SELECT {str(target)} FROM log")
             _target_values = []
             while self.query.next():
-                if isinstance(self.query.value(0), float):
+                try:
                     _target_values.append(self.query.value(0))
-                else:
+                except:
                     _target_values.append(np.nan)
-            diff = abs(np.array(_target_values) - np.array(_data_values))
-            _total_diff = np.nanmean(diff)
-            _data_mask = np.ma.masked_invalid(np.array(_total_diff))
+            _diff = abs(np.array(_target_values) - np.array(_data_values))
+            _total_diff = np.nanmean(_diff)
+            _data_mask = np.ma.masked_invalid(np.array(_diff))
             _me_mask = np.ma.masked_invalid(np.array(_me_values))
             _mask = (~_data_mask.mask & ~_me_mask.mask)
+
             _correlation = np.corrcoef(_data_mask[_mask], _me_mask[_mask])[0,1]
             _correlation_statement = _correlation_statements.get(_correlation) or _correlation_statements[min(_correlation_statements.keys(), key = lambda key: abs(key-_correlation))]
-            _seven_diff = np.nanmean(diff[-7:])
+            _seven_diff = np.nanmean(_diff[-7:])
             if _total_diff > _seven_diff:
                 closer_or_further = "closer to"
                 percent_num = (_total_diff - _seven_diff) / _seven_diff
@@ -952,7 +956,6 @@ be tasks completed and the "Goal Category Name" would be tasks
                 ALTER TABLE log
                 ADD COLUMN {_goal_value} REAL"""
             )
-            print(self._list_order_)
             query.exec_(
                 f"""
                 INSERT INTO variables (Variable, GoalType, Goal)
@@ -1121,7 +1124,6 @@ class ReportPromptWindow(QWidget):
         self._windows_[idx]._report_df_ = _report_df
         self._windows_[idx]._journal_ = _journal
         self._windows_[idx]._report_date_range_ = _report_date_range
-        print(_report_date_range)
         self._windows_[idx]._current_df_ = _current_df
         self._windows_[idx]._current_date_range_ = _current_date_range
         self._windows_[idx]._load_layout_()
