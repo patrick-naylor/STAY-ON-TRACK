@@ -5,8 +5,9 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QDateTime
 from PyQt5.QtCore import QSize
 import sys, os
-path = str(os.getcwdb())[2:-1] + '/'
-sys.path.append(path)
+path_util = str(os.getcwdb())[2:-1] + '/util/'
+path_data = str(os.getcwdb())[2:-1] + '/data/'
+sys.path.append(path_util)
 from preferences import setup
 from datetime import date
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -732,7 +733,7 @@ class CreateDBWindow(QWidget):
         self.w = None
         self.layout_super.addWidget(self.label_db)
         self.db = QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName(f'{path}personal_data.db')
+        self.db.setDatabaseName(f'{path_data}personal_data.db')
         self.pw = None
 
         if not self.db.open():
@@ -1333,7 +1334,7 @@ if __name__ == "__main__":
     rpw = None
     if (setup) and (rpw is None):
         db = QSqlDatabase.addDatabase("QSQLITE")
-        db.setDatabaseName(f'{path}personal_data.db')
+        db.setDatabaseName(f'{path_data}personal_data.db')
         db.close()
         db.open()
         query = QSqlQuery()
