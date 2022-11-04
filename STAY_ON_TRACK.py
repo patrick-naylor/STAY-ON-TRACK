@@ -548,7 +548,8 @@ mark down the dates or consider transcribing your entries here.
         _prev_date = ""
         while self.query.next():
             _prev_date = self.query.value(0)
-        _next_date = f"{_prev_date[:3]}{int(_prev_date[3:5]) +1}{_prev_date[5:]}"
+        _date_seq = pd.date_range(_prev_date, periods=2, freq='D')
+        _next_date = f"{str(_date_seq[1])[5:10]}-{str(_date_seq[1])[:4]}"
         self.query.exec_(
             f"""INSERT INTO log (Date)
             VALUES ("{_next_date}")"""
@@ -661,7 +662,7 @@ then after your previous seven.<br>
             _target_values = []
             while self.query.next():
                 try:
-                    _target_values.append(self.query.value(0))
+                    _target_values.append(float(self.query.value(0)))
                 except:
                     _target_values.append(np.nan)
             _diff = abs(np.array(_target_values) - np.array(_data_values))
