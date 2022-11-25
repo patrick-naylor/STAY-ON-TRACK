@@ -149,8 +149,8 @@ class MainWindow(QWidget):
             _combination = list(map(list, zip(*_ticks)))
             _label_list, _tick_list = _combination
         else:
-        	_tick_list = self._date_values_
-        	_label_list = [tick[:-4] + tick[-2:] for tick in self._date_values_]
+            _tick_list = self._date_values_
+            _label_list = [tick[:-4] + tick[-2:] for tick in self._date_values_]
 
         self.query.exec_("SELECT Me, Day FROM log")
         _me_values = []
