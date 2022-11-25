@@ -399,8 +399,8 @@ class MainWindow(QWidget):
             _combination = list(map(list, zip(*_ticks)))
             _label_list, _tick_list = _combination
         else:
-        	_tick_list = self._date_values_
-        	_label_list = [tick[:-4] + tick[-2:] for tick in self._date_values_]
+            _tick_list = self._date_values_
+            _label_list = [tick[:-4] + tick[-2:] for tick in self._date_values_]
 
         self.query.exec_("SELECT Me, Day FROM log")
         _me_values = []
@@ -908,7 +908,7 @@ be tasks completed and the "Goal Category Name" would be tasks
         while query.next():
             _list_orders.append(query.value(0))
         if setup:
-        	self._list_order_ = np.max(np.array(_list_orders))
+            self._list_order_ = np.max(np.array(_list_orders))
         if _goal_value in ["", "_", "Goal_Name"]:
             if self.pw is None:
                 self.pw = Popup()
